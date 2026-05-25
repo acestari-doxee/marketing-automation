@@ -1,19 +1,3 @@
-/**
- * Lead scoring — server-side copy of the rules in public/index.html.
- *
- * Regole (identiche al frontend per ora, unica fonte di verità quando
- * stringeremo la logica client-side a una chiamata server):
- *   - Job Title in TARGET_TITLES (C-suite, IT senior, ...) → +5
- *   - Job Title contiene NEGATIVE_TITLES ('STUDENT', 'HR')  → -15
- *   - Industry in TARGET_INDUSTRIES                         → +10
- *   - Company size ≥ 500                                    → +5
- *
- * Range totale: -15 → +25.
- *
- * Quando vogliamo cambiare i pesi: modifichiamo QUI, non nel frontend.
- * Il frontend leggerà lo score già calcolato dal server via /api/leads.
- */
-
 'use strict';
 
 const TARGET_TITLES = new Set([
@@ -48,25 +32,19 @@ function computeScore({ jobTitle, industry, companySize }) {
   let score = 0;
 
   const title = (jobTitle || '').toUpperCase().trim();
-  const ind = (industry || '').toUpperCase().trim();
-  const size = parseInt(companySize, 10) || 0;
+  const ind   = (industry  || '').toUpperCase().trim();
+  const size  = parseInt(companySize, 10) || 0;
 
   if (title) {
     if (TARGET_TITLES.has(title)) {
       score += 5;
     } else {
       for (const t of TARGET_TITLES) {
-        if (title.includes(t) || t.includes(title)) {
-          score += 5;
-          break;
-        }
+        if (title.includes(t) || t.includes(title)) { score += 5; break; }
       }
     }
     for (const neg of NEGATIVE_TITLES) {
-      if (title.includes(neg)) {
-        score -= 15;
-        break;
-      }
+      if (title.includes(neg)) { score -= 15; break; }
     }
   }
 
@@ -75,10 +53,7 @@ function computeScore({ jobTitle, industry, companySize }) {
       score += 10;
     } else {
       for (const target of TARGET_INDUSTRIES) {
-        if (ind.includes(target) || target.includes(ind)) {
-          score += 10;
-          break;
-        }
+        if (ind.includes(target) || target.includes(ind)) { score += 10; break; }
       }
     }
   }

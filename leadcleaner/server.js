@@ -6,16 +6,16 @@ const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
 
-const { createUsageTracker }   = require('./src/services/usage-tracker');
-const { createEnrichRouter }   = require('./src/routes/enrich');
-const { createUsageRouter }    = require('./src/routes/usage');
+const { createUsageTracker } = require('./src/services/usage-tracker');
+const { createEnrichRouter } = require('./src/routes/enrich');
+const { createUsageRouter }  = require('./src/routes/usage');
 
 const PORT          = parseInt(process.env.PORT, 10) || 3000;
 const APOLLO_KEY    = process.env.APOLLO_API_KEY || '';
-const MONTHLY_LIMIT = parseInt(process.env.APOLLO_MONTHLY_LIMIT, 10) || 75;
+const MONTHLY_LIMIT = parseInt(process.env.APOLLO_MONTHLY_LIMIT, 10) || 30020;
 
 if (!APOLLO_KEY) {
-  console.warn('[startup] WARNING: APOLLO_API_KEY not set in .env');
+  console.warn('[startup] APOLLO_API_KEY not set in .env');
 }
 
 const app = express();

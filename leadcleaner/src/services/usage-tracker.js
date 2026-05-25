@@ -31,21 +31,14 @@ function createUsageTracker({ monthlyLimit, usageFile }) {
   function load() {
     const data = readFile(usageFile);
     const month = currentMonth();
-    if (data.month !== month) {
-      return { month, calls: 0 };
-    }
+    if (data.month !== month) return { month, calls: 0 };
     return data;
   }
 
   return {
     getSummary() {
       const data = load();
-      return {
-        month: data.month,
-        calls_used: data.calls,
-        calls_remaining: Math.max(0, monthlyLimit - data.calls),
-        monthly_limit: monthlyLimit,
-      };
+      return { month: data.month, calls_used: data.calls };
     },
 
     assertCanCall() {

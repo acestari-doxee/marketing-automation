@@ -29,11 +29,7 @@
   header { background:var(--white); border-bottom:1px solid var(--border); padding:0 32px; height:56px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
   .logo { font-size:15px; font-weight:700; letter-spacing:-.3px; }
   .logo span { color:var(--accent); }
-  #usage-badge { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
-  .quota-bar { width:80px; height:5px; background:var(--border); border-radius:99px; overflow:hidden; }
-  .quota-fill { height:100%; background:var(--accent); border-radius:99px; transition:width .3s; }
-  .quota-fill.warn { background:var(--yellow); }
-  .quota-fill.danger { background:var(--red); }
+  #usage-badge { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); }
 
   /* Main */
   main { max-width:1100px; margin:32px auto; padding:0 24px; }
@@ -119,15 +115,15 @@
   #toast.visible { display:block; }
   #toast.success { border-left-color:var(--green); }
   #toast.error   { border-left-color:var(--red); }
+
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">Lead<span>Cleaner</span></div>
-  <div id="usage-badge">
-    <span id="usage-text">Loading quota...</span>
-    <div class="quota-bar"><div class="quota-fill" id="quota-fill" style="width:0%"></div></div>
+  <div id="usage-badge" title="Enrichments made via LeadCleaner since install">
+    <span id="usage-text">—</span>
   </div>
 </header>
 
@@ -228,16 +224,14 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadUsage() {
   try {
     const d = await (await fetch('/api/usage')).json();
-    updateUsageBadge(d.calls_used, d.monthly_limit);
-  } catch (_) { document.getElementById('usage-text').textContent = 'Quota N/A'; }
+    updateUsageBadge(d.calls_used);
+  } catch (_) { document.getElementById('usage-text').textContent = '— enrichments'; }
 }
 
-function updateUsageBadge(used, limit) {
-  const pct = Math.min(100, Math.round((used / limit) * 100));
-  document.getElementById('usage-text').textContent = `${used}/${limit} calls`;
-  const f = document.getElementById('quota-fill');
-  f.style.width = pct + '%';
-  f.className = 'quota-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+function updateUsageBadge(used) {
+  const n = used ?? 0;
+  document.getElementById('usage-text').textContent =
+    `${n.toLocaleString()} enrichment${n === 1 ? '' : 's'}`;
 }
 
 /* ---------------- Dedup / merge ---------------- */
@@ -483,7 +477,7 @@ async function startEnrichment() {
         if(d.industry){lead.industry=d.industry;en.push('industry');}
         if(d.country){lead.country=d.country;en.push('country');}
         lead._enriched=en; lead._score=computeScore(lead);
-        if(d.calls_used!==undefined) updateUsageBadge(d.calls_used,d.calls_used+d.calls_remaining);
+        if(d.calls_used!==undefined) updateUsageBadge(d.calls_used);
       }
     } catch(_){}
     done++;

@@ -4,8 +4,3 @@ node_modules/
 *.log
 usage.json
 .DS_Store
-
-# Editor / tool interni
-.claude/
-CLAUDE.md
-memory.md
