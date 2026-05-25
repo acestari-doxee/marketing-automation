@@ -1,109 +1,102 @@
-# INSTALL — Guida all'installazione
+# INSTALL — Installation Guide
 
-Questa guida ti porta dall'azzeramento totale al primo invito inviato, passo dopo passo.
-Non serve nessuna competenza tecnica.
-
----
-
-## 1. Cosa ti serve prima di iniziare
-
-- Un Mac (questa guida non funziona su Windows o Linux).
-- Un account Microsoft 365 con accesso al calendario (es. account aziendale).
-- Accesso al portale Azure della tua organizzazione per registrare l'app (o qualcuno che lo faccia per te, vedi sezione 4).
-- Connessione internet.
+This guide takes you from zero to your first invitation sent, step by step. No technical knowledge required.
 
 ---
 
-## 2. Installare Python 3
+## 1. What you need before you start
 
-Vai su [https://www.python.org/downloads/](https://www.python.org/downloads/).
-
-Clicca sul grande pulsante giallo **Download Python 3.x.x**. Si scarica un file `.pkg`.
-
-Fai doppio click sul file scaricato e segui il wizard: **Continua → Continua → Accetta → Installa**.
-
-Per verificare che sia andato a buon fine, apri il **Terminale** (cercalo con Spotlight: `Cmd+Spazio`, scrivi `Terminale`, premi Invio) e scrivi:
-
-```
-python3 --version
-```
-
-Premi Invio. Dovresti vedere qualcosa come `Python 3.12.3`. Se compare una versione, Python è installato correttamente.
+- A Mac (this guide does not work on Windows or Linux).
+- A Microsoft 365 account with calendar access (e.g. a company account).
+- Access to your organisation's Azure portal to register the app (or someone who can do it for you — see section 4).
+- An internet connection.
 
 ---
 
-## 3. Scaricare il progetto
+## 2. Install Python 3
 
-**Opzione A — con Git (se lo hai installato):**
+Go to [python.org/downloads](https://www.python.org/downloads/).
 
-Apri il Terminale e scrivi:
+Click the large yellow **Download Python 3.x.x** button. A `.pkg` file will download.
 
-```
-git clone https://github.com/TUO-UTENTE/event-mailer.git
-```
+Double-click the downloaded file and follow the wizard: Continue → Continue → Agree → Install.
 
-Poi:
+To verify the installation, open Terminal (search with Spotlight: `Cmd+Space`, type `Terminal`, press Enter) and run:
 
-```
-cd event-mailer
-```
+>python --version
 
-**Opzione B — scaricando lo ZIP:**
-
-Vai sulla pagina GitHub del progetto. Clicca su **Code** (pulsante verde in alto a destra). Clicca su **Download ZIP**.
-
-Apri il file `.zip` scaricato: si crea una cartella `event-mailer`. Spostala dove preferisci (es. sul Desktop).
+Press Enter. You should see something like `Python 3.12.3`. If a version number appears, Python is installed correctly.
 
 ---
 
-## 4. Registrare l'app su Azure
+## 3. Download the project
 
-Questo passaggio serve per ottenere le credenziali che il programma usa per accedere al calendario Microsoft. Va fatto una volta sola.
+**Option A — with Git (if you have it installed):**
 
-> Se nella tua organizzazione non hai i permessi per registrare app su Azure, chiedi all'amministratore IT di seguire questi passi e di darti i tre valori finali: Tenant ID, Client ID e Client Secret.
+Open Terminal and run:
 
-**4.1 — Apri il portale Azure**
+```
+git clone [https://github.com/Doxee-Marketing/marketing-automation.git](https://github.com/Doxee-Marketing/marketing-automation.git)
 
-Vai su [https://portal.azure.com](https://portal.azure.com) e accedi con il tuo account Microsoft 365.
+Then:
 
-**4.2 — Vai su App Registrations**
+cd marketing-automation/event-mailer
+```
 
-Nella barra di ricerca in cima, scrivi `App registrations`. Clicca sul risultato **App registrations**.
+**Option B — download the ZIP:**
 
-**4.3 — Crea una nuova app**
+Go to the GitHub page of the project. Click **Code** (green button, top right). Click **Download ZIP**.
 
-Clicca su **+ New registration** (in alto a sinistra).
+Open the downloaded `.zip` file — it creates a folder called `event-mailer`. Move it wherever you prefer (e.g. the Desktop).
 
-Nel campo **Name** scrivi un nome qualsiasi, per esempio `event-mailer`.
+---
 
-Sotto **Supported account types** seleziona **Accounts in this organizational directory only**.
+## ~~4. Register the app on Azure~~    IS DONE --> SKIP PART 4 
 
-Lascia tutto il resto com'è. Clicca **Register**.
+This step provides the credentials the program uses to access the Microsoft calendar. It only needs to be done once.
 
-Sei ora nella pagina della tua app. Troverai due valori importanti:
+If you don't have permission to register apps on Azure in your organisation, ask your IT administrator to follow these steps and give you the three final values: Tenant ID, Client ID and Client Secret.
 
-- **Application (client) ID** → copialo e salvalo da qualche parte.
-- **Directory (tenant) ID** → copialo e salvalo da qualche parte.
+### 4.1 — Open the Azure portal
 
-![screenshot placeholder — pagina overview app Azure](docs/azure-overview.png)
+Go to [portal.azure.com](https://portal.azure.com) and sign in with your Microsoft 365 account.
 
-**4.4 — Abilita il device code flow**
+### 4.2 — Go to App Registrations
 
-Nel menu a sinistra, clicca su **Authentication**.
+In the search bar at the top, type `App registrations`. Click the **App registrations** result.
 
-Clicca su **+ Add a platform**. Seleziona **Mobile and desktop applications**.
+### 4.3 — Create a new app
 
-Spunta la casella `https://login.microsoftonline.com/common/oauth2/nativeclient`. Clicca **Configure**.
+Click **+ New registration** (top left).
 
-Torna alla pagina **Authentication**. Scorri in basso fino a **Advanced settings**. Imposta **Allow public client flows** su **Yes**. Clicca **Save**.
+In the **Name** field, enter any name, for example `event-mailer`.
 
-**4.5 — Aggiungi i permessi**
+Under **Supported account types**, select **Accounts in this organizational directory only**.
 
-Nel menu a sinistra, clicca su **API permissions**.
+Leave everything else as-is. Click **Register**.
 
-Clicca su **+ Add a permission**. Seleziona **Microsoft Graph**. Seleziona **Delegated permissions**.
+You are now on your app's page. You'll find two important values:
 
-Cerca e spunta questi cinque permessi:
+- **Application (client) ID** → copy and save it somewhere.
+- **Directory (tenant) ID** → copy and save it somewhere.
+
+### 4.4 — Enable the device code flow
+
+In the left menu, click **Authentication**.
+
+Click **+ Add a platform**. Select **Mobile and desktop applications**.
+
+Check the box `https://login.microsoftonline.com/common/oauth2/nativeclient`. Click **Configure**.
+
+Go back to the **Authentication** page. Scroll down to **Advanced settings**. Set **Allow public client flows** to **Yes**. Click **Save**.
+
+### 4.5 — Add permissions
+
+In the left menu, click **API permissions**.
+
+Click **+ Add a permission**. Select **Microsoft Graph**. Select **Delegated permissions**.
+
+Search for and check these five permissions:
 
 - `Calendars.ReadWrite`
 - `Mail.Read`
@@ -111,139 +104,132 @@ Cerca e spunta questi cinque permessi:
 - `User.Read`
 - `offline_access`
 
-Clicca **Add permissions**.
+Click **Add permissions**.
 
-Clicca su **Grant admin consent for [nome organizzazione]**, poi conferma con **Yes**.
+Click **Grant admin consent for [organisation name]**, then confirm with **Yes**.
 
-> Se non vedi questo pulsante, hai bisogno dei permessi di amministratore. Chiedi all'IT.
+If you don't see this button, you need administrator permissions. Ask IT.
 
-**4.6 — Crea il Client Secret**
+### 4.6 — Create the Client Secret
 
-Un **Client Secret** è una password generata da Microsoft per la tua app: serve a dimostrare che sei tu a usarla.
+A Client Secret is a password generated by Microsoft for your app: it proves that it's you using it.
 
-Nel menu a sinistra, clicca su **Certificates & secrets**. Clicca su **+ New client secret**.
+In the left menu, click **Certificates & secrets**. Click **+ New client secret**.
 
-Nel campo **Description** scrivi qualcosa tipo `event-mailer`. In **Expires** scegli **24 months** (o il massimo disponibile). Clicca **Add**.
+In the **Description** field write something like `event-mailer`. Under **Expires**, choose **24 months** (or the maximum available). Click **Add**.
 
-Appare una riga con il secret. Il valore nella colonna **Value** è visibile solo adesso: **copialo subito** e salvalo in un posto sicuro. Se esci dalla pagina senza copiarlo, dovrai crearne uno nuovo.
+A row appears with the secret. The value in the **Value** column is only visible now: copy it immediately and save it somewhere safe. If you leave the page without copying it, you'll need to create a new one.
 
-Ora hai tutto: Tenant ID, Client ID, Client Secret.
-
----
-
-## 5. Creare l'evento su Outlook e salvarlo come .ics
-
-Crea il tuo evento normalmente su Outlook (web o desktop): imposta titolo, data, ora, descrizione.
-
-**Da Outlook Web ([https://outlook.office.com](https://outlook.office.com)):**
-
-Apri l'evento nel calendario. Clicca su **...** (i tre puntini in alto a destra dell'evento). Clicca su **Export event**. Si scarica un file `.ics`.
-
-**Da Outlook Desktop (Mac):**
-
-Apri l'evento. Dal menu in cima scegli **File → Save As**. Scegli il formato **ICS**. Clicca **Save**.
-
-Rinomina il file scaricato in `evento.ics` (tutto minuscolo, niente spazi).
-
-Copia `evento.ics` nella cartella `event-mailer` (quella che hai scaricato al passo 3).
+You now have everything: Tenant ID, Client ID, Client Secret.
 
 ---
 
-## 6. Primo avvio
+## 5. Create the event in Outlook and save it as .ics
 
-Apri la cartella `event-mailer` nel Finder.
+Create your event normally in Outlook (web or desktop): set the title, date, time and description.
 
-Fai **doppio click** su `start.command`.
+**From Outlook Web** ([outlook.office.com](https://outlook.office.com)):
 
-Si apre una finestra del Terminale. Se appare un avviso di sicurezza macOS ("impossibile aprire l'applicazione da uno sviluppatore non identificato"), vai in **Impostazioni di Sistema → Privacy e Sicurezza** e clicca **Apri comunque**.
+Open the event in the calendar. Click **...** (the three dots, top right of the event). Click **Export event**. An `.ics` file will download.
 
-Il programma installa le dipendenze necessarie (richiede internet, dura pochi secondi). Poi parte il wizard di configurazione.
+**From Outlook Desktop (Mac):**
 
-Il wizard fa tre cose:
+Open the event. From the top menu choose **File → Save As**. Choose the **ICS** format. Click **Save**.
 
-**[1/3] Evento:** legge il file `evento.ics` e propone automaticamente il titolo come keyword. Premi Invio per confermarlo, o scrivi una keyword diversa (una parola del titolo dell'evento) e premi Invio.
+Rename the downloaded file to `evento.ics` (all lowercase, no spaces).
 
-**[2/3] Azure:** il programma chiede Tenant ID e Client ID. Incolla quelli che hai copiato al passo 4 e premi Invio dopo ognuno.
-
-**[3/3] Client Secret:** il programma chiede il Client Secret. Incollalo e premi Invio. Il cursore non si muove mentre scrivi (è normale: nasconde il testo per sicurezza). Il secret viene salvato cifrato nel macOS Keychain e non apparirà mai in nessun file.
-
-Quando vedi `Setup completato.`, il wizard è finito.
+Copy `evento.ics` into the `event-mailer` folder (the one you downloaded in step 3).
 
 ---
 
-## 7. Login Microsoft (device code flow)
+## 6. First run
 
-Subito dopo il setup, il programma avvia il login Microsoft.
+Open the `event-mailer` folder in Finder.
 
-Vedi nel Terminale qualcosa come:
+Double-click `start.command`.
 
-```
-============================================================
-  Codice:  ABC-DEF   (gia' copiato negli appunti)
-  Pagina:  https://login.microsoftonline.com/common/oauth2/deviceauth
-============================================================
-  Ho aperto la pagina nel browser. Incolla il codice e conferma.
-  Resto in attesa qui sotto...
-```
+A Terminal window opens. If a macOS security warning appears ("cannot open the application from an unidentified developer"), go to **System Settings → Privacy & Security** and click **Open Anyway**.
 
-Il browser si apre automaticamente sulla pagina Microsoft. Il codice è già copiato negli appunti.
+The program installs the required dependencies (needs internet, takes a few seconds). Then the setup wizard starts.
 
-Clicca nel campo di testo della pagina Microsoft e incolla il codice (`Cmd+V`). Clicca **Next**.
+The wizard does three things:
 
-Accedi con il tuo account Microsoft 365 (email e password aziendali). Conferma i permessi richiesti.
+**[1/3] Event:** reads the `evento.ics` file and automatically suggests the title as a keyword. Press Enter to confirm, or type a different keyword (one word from the event title) and press Enter.
 
-Torna al Terminale. Quando vedi `Login confermato.`, il login è andato a buon fine.
+**[2/3] Azure:** the program asks for Tenant ID and Client ID. Paste the values you copied in step 4 and press Enter after each one.
 
-Il pannello si apre automaticamente nel browser su `http://localhost:8765`.
+**[3/3] Client Secret:** the program asks for the Client Secret. Paste it and press Enter. The cursor won't move as you type (this is normal: the text is hidden for security). The secret is saved encrypted in the macOS Keychain and will never appear in any file.
+
+When you see `Setup complete.`, the wizard is done.
 
 ---
 
-## 8. Usare il pannello
+## 7. Microsoft login (device code flow)
 
-**Vedere le risposte:** le card in cima mostrano il numero di Accepted, Declined, Tentative e Pending. La tabella si aggiorna in automatico ogni 8 secondi.
+Right after setup, the program starts the Microsoft login.
 
-**Aggiungere un invitato:** compila i campi **Nome** ed **Email** nella sezione "Aggiungi invitato". Clicca **Invia invito**. Il destinatario riceve una email con l'invito iCalendar (con i pulsanti Accetta / Rifiuta / Forse, compatibili con Gmail e qualsiasi client email).
+You'll see something like this in the Terminal:
+#### Code: ABC-DEF (already copied to clipboard) Page: [https://login.microsoftonline.com/common/oauth2/deviceauth](https://login.microsoftonline.com/common/oauth2/deviceauth)
 
-**Filtrare per stato:** clicca su una delle card colorate (Accepted, Declined, ecc.) per filtrare la tabella. Puoi selezionarne più di una. Clicca **Pulisci filtri** per toglierli.
+Browser opened. Paste the code and confirm. Waiting here...
+Your browser opens automatically on the Microsoft page. The code is already in your clipboard.
 
-**Esportare in Excel:** clicca il pulsante **Esporta XLSX**. Se hai un filtro attivo, il file conterrà solo i partecipanti visibili. Il file si chiama `rsvp_[stato]_[data_ora].xlsx` e viene scaricato nella cartella Download.
+Click in the text field on the Microsoft page and paste the code (`Cmd+V`). Click **Next**.
 
-**Aggiornare manualmente:** clicca il pulsante **↻ Aggiorna** in alto a destra per forzare una lettura fresca da Exchange.
+Sign in with your Microsoft 365 account (company email and password). Confirm the requested permissions.
 
-**Modificare lo stato di un invitato manuale:** se un invitato è stato aggiunto a mano dal pannello (e non tramite Outlook), il suo stato mostra una freccia ▾. Cliccaci sopra per cambiarlo.
+Go back to the Terminal. When you see `Login confirmed.`, the login was successful.
 
----
-
-## 9. Avvii successivi
-
-Dal secondo avvio in poi: fai doppio click su `start.command`. Il wizard non riparte. Il login Microsoft avviene in automatico (il token viene rinnovato silenziosamente). Il pannello si apre direttamente nel browser.
-
-Se cambi evento: sostituisci il file `evento.ics` nella cartella e cancella `config.json`. Al prossimo avvio il wizard riparte e ti chiede le nuove informazioni (le credenziali Azure rimangono nel Keychain, non devi reinserirle).
+The dashboard opens automatically in your browser at `http://localhost:8765`.
 
 ---
 
-## 10. Se qualcosa va storto
+## 8. Using the dashboard
 
-**Il Terminale si chiude subito senza fare nulla.**
-Controlla che `start.command` sia nella stessa cartella degli altri file (`server.py`, `setup.py`, ecc.). Se li hai spostati separatamente, rimettili insieme.
+**View responses:** the cards at the top show the number of Accepted, Declined, Tentative and Pending replies. The table updates automatically every 8 seconds.
 
-**"Python 3 non trovato".**
-Python non è installato o non è nel PATH. Torna alla sezione 2 e reinstallalo. Dopo l'installazione, chiudi e riapri il Terminale.
+**Add a guest:** fill in the Name and Email fields in the "Add guest" section. Click **Send invitation**. The recipient receives an email with the iCalendar invitation (with Accept / Decline / Maybe buttons, compatible with Gmail and any email client).
 
-**"Nessun file .ics trovato nella cartella".**
-Il file dell'evento non è nella cartella `event-mailer`, oppure si chiama in modo diverso da `evento.ics`. Verifica il nome e la posizione del file.
+**Filter by status:** click one of the coloured cards (Accepted, Declined, etc.) to filter the table. You can select more than one. Click **Clear filters** to remove them.
 
-**Il browser non si apre durante il login.**
-Il programma stampa l'URL nel Terminale. Aprilo a mano copiandolo nel browser: `https://login.microsoftonline.com/common/oauth2/deviceauth`. Il codice è già negli appunti: incollalo lì.
+**Export to Excel:** click the **Export XLSX** button. If a filter is active, the file will contain only the visible participants. The file is named `rsvp_[status]_[datetime].xlsx` and is saved to your Downloads folder.
 
-**"Accesso negato dall'utente" o errore di permessi Azure.**
-I permessi dell'app non sono stati concessi correttamente (sezione 4.5). Torna sul portale Azure, controlla che tutti e quattro i permessi siano presenti e che il consenso admin sia stato concesso (voce "Granted" nella colonna Status).
+**Refresh manually:** click the **↻ Refresh** button (top right) to force a fresh read from Exchange.
 
-**"Porta 8765 già in uso".**
-C'è già una finestra di `start.command` aperta. Chiudi il Terminale precedente (o premi `Ctrl+C` in quella finestra) prima di riaprirlo.
+**Change a manually added guest's status:** if a guest was added via the dashboard (not through Outlook), their status shows a ▾ arrow. Click it to change their status.
 
-**Il Client Secret è scaduto o è stato revocato.**
-Cancella `.token_cache.json` dalla cartella `event-mailer`. Cancella `config.json`. Riavvia `start.command`: il wizard riparte e potrai inserire il nuovo secret.
+---
 
-**"Nessun evento con '...' nel titolo trovato su Exchange".**
-La keyword configurata non corrisponde al titolo dell'evento nel calendario. Apri `config.json` e modifica il valore di `event_keyword` con una parola del titolo esatto dell'evento come appare in Outlook.
+## 9. Subsequent runs
+
+From the second run onwards: double-click `start.command`. The wizard does not restart. Microsoft login happens automatically (the token is renewed silently). The dashboard opens directly in the browser.
+
+**If you change the event:** replace the `evento.ics` file in the folder and delete `config.json`. On the next run the wizard restarts and asks for the new information (Azure credentials stay in the Keychain — you won't need to re-enter them).
+
+---
+
+## 10. Troubleshooting
+
+**The Terminal closes immediately without doing anything.**
+Check that `start.command` is in the same folder as the other files (`server.py`, `setup.py`, etc.). If you moved them separately, put them back together.
+
+**"Python 3 not found".**
+Python is not installed or not in PATH. Go back to section 2 and reinstall it. After installation, close and reopen the Terminal.
+
+**"No .ics file found in the folder".**
+The event file is not in the `event-mailer` folder, or it has a different name from `evento.ics`. Check the file name and location.
+
+**The browser doesn't open during login.**
+The program prints the URL in the Terminal. Open it manually by copying it into your browser: `https://login.microsoftonline.com/common/oauth2/deviceauth`. The code is already in your clipboard — paste it there.
+
+**"Access denied by user" or Azure permissions error.**
+The app permissions were not granted correctly (section 4.5). Go back to the Azure portal, check that all five permissions are present and that admin consent has been granted (the "Granted" label in the Status column).
+
+**"Port 8765 already in use".**
+There is already a `start.command` window open. Close the previous Terminal window (or press `Ctrl+C` in that window) before reopening it.
+
+**The Client Secret has expired or been revoked.**
+Delete `.token_cache.json` from the `event-mailer` folder. Delete `config.json`. Restart `start.command`: the wizard restarts and you can enter the new secret.
+
+**"No event with '...' in the title found on Exchange".**
+The configured keyword does not match the event title in the calendar. Open `config.json` and update the `event_keyword` value with a word from the exact event title as it appears in Outlook.

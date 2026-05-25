@@ -1,47 +1,52 @@
 # Doxee Marketing AI — Hub
 
-Indice di tutte le automazioni sviluppate dal team Marketing di Doxee.  
-Ogni automazione ha la sua repo separata con documentazione completa.
+Index of all automations built by the Doxee Marketing team.  
+Each automation lives in its own folder with full documentation.
 
-> Sviluppate durante l'internship di Leonardo Bellani (aprile–giugno 2026).
+> Built during Leonardo Bellani's internship (April–June 2026).
 
 ---
 
-## Automazioni
+## Automations
 
-| Nome | Cosa fa | Repo |
+| Name | What it does | Folder |
 |---|---|---|
-| **LeadCleaner** | Upload XLSX → enrichment Apollo → scoring → export HubSpot-ready | [doxee/doxee-leadcleaner](https://github.com/doxee/doxee-leadcleaner) |
-| **Deal Engagement** | Estrae dati di engagement sui deal da HubSpot → Excel | [doxee/doxee-deal-engagement](https://github.com/doxee/doxee-deal-engagement) |
-| **Event Mailer** | Invio email automatizzato per eventi via Microsoft Graph | [doxee/doxee-event-mailer](https://github.com/doxee/doxee-event-mailer) |
+| **LeadCleaner** | Upload XLSX → Apollo enrichment → scoring → HubSpot-ready export | [leadcleaner/](./leadcleaner/) |
+| **Deal Engagement** | Extracts deal engagement data from HubSpot → Excel | [deal-engagement/](./deal-engagement/) |
+| **Event Mailer** | Automated event email sending via Microsoft Graph | [event-mailer/](./event-mailer/) |
 
 ---
 
-## Come scaricare un'automazione
+## How to get started
 
-Per usare una singola automazione, vai nella sua repo e segui il README.  
-Non devi scaricare tutto — ogni repo è indipendente.
+Clone the repo once and you have everything:
 
----
+```bash
+git clone https://github.com/Doxee-Marketing/marketing-automation.git
+```
 
-## Per chi vuole contribuire
-
-Ogni repo ha una sezione "Per sviluppatori" nel README con i dettagli tecnici.  
-Per aggiungere una nuova automazione: crea una repo separata seguendo il template in questo repo (`README-TEMPLATE.md`) e aggiorna la tabella qui sopra.
+Then go into the folder of the automation you need and follow its README.
 
 ---
 
-## File in questa repo
+## For contributors
 
-| File | A cosa serve |
+Each automation folder has a "For developers" section in its README with technical details.  
+To add a new automation: create a new folder following the template in `README-TEMPLATE.md` and update the table above.
+
+---
+
+## Files in this repo
+
+| File | Purpose |
 |---|---|
-| `README-TEMPLATE.md` | Template standard da usare per ogni nuova automazione |
-| `.gitignore` | .gitignore base (copia in ogni repo) |
+| `README-TEMPLATE.md` | Standard template to use for each new automation |
+| `.gitignore` | Base gitignore (covers Python, Node, secrets) |
 
 ---
 
-## Contatti
+## Contact
 
 Leonardo Bellani — lbellani@doxee.com  
-Emanuela Disperati - edisperati@doxee.com
-Team Marketing Doxee — referente: Judith
+Emanuela Disperati — edisperati@doxee.com  
+Doxee Marketing Team — ref: Judith Schuder

@@ -1,75 +1,73 @@
 # Event Mailer
 
-Pannello RSVP per eventi Outlook, anche per destinatari Gmail e altri domini non-Microsoft.
-
-![pannello](docs/screenshot.png)
+RSVP dashboard for Outlook events, including recipients on Gmail and other non-Microsoft domains.
 
 ---
 
-## A chi serve
+## Who it's for
 
-- Chi organizza eventi aziendali tramite calendario Microsoft 365 e deve tracciare le conferme di partecipazione.
-- Chi deve invitare persone con email Gmail o altri provider che non ricevono correttamente gli inviti diretti da Outlook.
-- Chi ha bisogno di esportare la lista dei partecipanti in Excel con un click.
-
----
-
-## Cosa fa
-
-- Legge in tempo reale gli stati RSVP dal calendario Microsoft Exchange (Accepted, Declined, Tentative, Pending).
-- Invia inviti compatibili con Gmail, Apple Mail e qualsiasi client email: il destinatario vede i pulsanti Accetta / Rifiuta / Forse nell'email.
-- Raccoglie le risposte anche da indirizzi non-Microsoft leggendole dalla inbox dell'organizzatore via API.
-- Permette di aggiungere invitati nuovi direttamente dal pannello, con invio immediato dell'invito.
-- Esporta la lista RSVP in un file Excel formattato (.xlsx), con filtro per stato.
+- Anyone who organises company events via Microsoft 365 calendar and needs to track attendance confirmations.
+- Anyone who needs to invite people with Gmail or other email providers who don't receive Outlook invitations correctly.
+- Anyone who needs to export the participant list to Excel in one click.
 
 ---
 
-## Requisiti
+## What it does
 
-- Mac con macOS 10.15 o successivo.
-- Python 3.8 o successivo (scaricabile da [python.org](https://www.python.org/downloads/)).
-- Un account Microsoft 365 con accesso al calendario (es. account aziendale o scolastico).
-- Un'app registrata su Azure Active Directory con i permessi corretti (vedi [INSTALL.md](INSTALL.md)).
+- Reads RSVP statuses in real time from the Microsoft Exchange calendar (Accepted, Declined, Tentative, Pending).
+- Sends invitations compatible with Gmail, Apple Mail and any email client: the recipient sees Accept / Decline / Maybe buttons directly in the email.
+- Collects replies from non-Microsoft addresses by reading the organiser's inbox via API.
+- Allows adding new guests directly from the dashboard, with immediate invitation sending.
+- Exports the RSVP list to a formatted Excel file (.xlsx), filterable by status.
+
+---
+
+## Requirements
+
+- Mac with macOS 10.15 or later.
+- Python 3.8 or later (download from [python.org](https://www.python.org/downloads/)).
+- A Microsoft 365 account with calendar access (e.g. a company or school account).
+- An app registered on Azure Active Directory with the correct permissions (see `INSTALL.md`). ✅ Done
 
 ---
 
 ## Quick start
 
-1. Segui la guida completa in [INSTALL.md](INSTALL.md) per il primo avvio.
-2. Esporta l'evento da Outlook come `evento.ics` e mettilo nella cartella `event-mailer`.
-3. Fai doppio click su `start.command`.
+1. Follow the full guide in `INSTALL.md` for the first run.
+2. Export the event from Outlook as `evento.ics` and place it in the `event-mailer` folder.
+3. Double-click `start.command`.
 
 ---
 
-## Come funziona dietro le quinte
+## How it works under the hood
 
-Al primo avvio, un wizard legge automaticamente il file `.ics` nella cartella, ricava il titolo dell'evento e chiede le credenziali Azure una volta sola. Il Client Secret non viene mai scritto in un file di testo: viene salvato cifrato nel **macOS Keychain** tramite la libreria `keyring`.
+On first run, a wizard automatically reads the `.ics` file in the folder, extracts the event title, and asks for Azure credentials once. The Client Secret is never written to a text file: it is saved encrypted in the macOS Keychain via the `keyring` library.
 
-Per autenticarsi con Microsoft, il programma usa il **device code flow OAuth2**: genera un codice monouso, lo copia negli appunti e apre il browser sulla pagina di login Microsoft. L'utente incolla il codice, conferma con il proprio account, e il programma riceve automaticamente il token di accesso senza che la password passi mai per il codice.
+To authenticate with Microsoft, the program uses the OAuth2 device code flow: it generates a one-time code, copies it to the clipboard, and opens the browser on the Microsoft login page. The user pastes the code, confirms with their account, and the program automatically receives the access token — the password never passes through the code.
 
-Tutti i dati RSVP vengono letti in tempo reale dalla **Microsoft Graph API**: sia dall'elenco partecipanti dell'evento Exchange, sia dalla inbox dell'organizzatore (per intercettare le risposte da indirizzi Gmail e simili che Exchange non processa automaticamente).
+All RSVP data is read in real time from the Microsoft Graph API: both from the Exchange event's attendee list and from the organiser's inbox (to capture replies from Gmail and similar addresses that Exchange does not process automatically).
 
-Il pannello si aggiorna ogni 8 secondi senza bisogno di ricaricare la pagina.
-
----
-
-## Privacy e sicurezza
-
-- Il Client Secret è salvato nel **macOS Keychain**: non finisce mai in un file di testo, non viene trasmesso a servizi terzi.
-- Il file `config.json` (che contiene Tenant ID e Client ID) è elencato nel `.gitignore` e non viene incluso in eventuali commit.
-- Il token di accesso Microsoft è salvato in `.token_cache.json` con permessi `chmod 600` (leggibile solo dall'utente corrente).
-- Nessun dato viene inviato a server esterni al di fuori di Microsoft Graph API.
+The dashboard refreshes every 8 seconds without needing to reload the page.
 
 ---
 
-## Limiti noti
+## Privacy and security
 
-- Funziona solo su **Mac**: il file `start.command` e la copia automatica negli appunti (`pbcopy`) sono specifici di macOS.
-- Richiede che l'app Azure abbia il **device code flow abilitato** (Public client flows: sì). Senza questa impostazione il login non funziona.
-- Il pannello gira in locale sulla porta 8765: non è accessibile da altri computer sulla rete.
+- The Client Secret is saved in the macOS Keychain: it never ends up in a text file and is never transmitted to third-party services.
+- The `config.json` file (which contains Tenant ID and Client ID) is listed in `.gitignore` and is not included in any commits.
+- The Microsoft access token is saved in `.token_cache.json` with `chmod 600` permissions (readable only by the current user).
+- No data is sent to external servers outside of the Microsoft Graph API.
 
 ---
 
-## Licenza
+## Known limitations
 
-MIT — vedi [LICENSE](LICENSE) per il testo completo.
+- Mac only: the `start.command` file and automatic clipboard copy (`pbcopy`) are macOS-specific.
+- Requires the Azure app to have device code flow enabled (Public client flows: Yes). Without this setting, login will not work.
+- The dashboard runs locally on port 8765: it is not accessible from other computers on the network.
+
+---
+
+## License
+
+MIT — see LICENSE for the full text.

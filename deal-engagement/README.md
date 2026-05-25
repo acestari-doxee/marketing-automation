@@ -1,153 +1,146 @@
 # HubSpot Deal Engagement Extractor
 
-Estrae i deal di un segmento HubSpot e produce un Excel con account, opportunity, contatti e lead score. Un click → un file `.xlsx`. Non scrive nulla su HubSpot.
+Pulls deals from a HubSpot segment and produces an Excel file with accounts, opportunities, contacts and lead scores. One click → one `.xlsx` file. Read-only: nothing is written back to HubSpot.
 
 ---
 
-## Per chi deve solo usarlo — guida passo passo
+## For end users — step by step
 
-> Segui questa sezione se non hai mai usato il terminale. Basta leggere in ordine.
+> Follow this section if you have never used the terminal. Just read in order.
 
-### 1. Installa Python (solo al primo utilizzo)
+### 1. Install Python (first time only)
 
-1. Vai su [python.org/downloads](https://www.python.org/downloads/)
-2. Clicca il pulsante giallo **"Download Python 3.x.x"**
-3. Apri il file scaricato
-4. **Importante (Windows):** nella prima schermata del programma di installazione, spunta la casella **"Add Python to PATH"** prima di cliccare Installa
-5. Clicca Installa e aspetta che finisca
-6. Chiudi il programma di installazione
+1. Go to [python.org/downloads](https://www.python.org/downloads/)
+2. Click the yellow **"Download Python 3.x.x"** button
+3. Open the downloaded file
+4. **Windows only:** on the first screen of the installer, check **"Add Python to PATH"** before clicking Install
+5. Click Install and wait
+6. Close the installer
 
-### 2. Scarica questo progetto (solo al primo utilizzo)
+### 2. Download this project (first time only)
 
-1. Apri il Terminale (Mac: cerca "Terminale" in Spotlight con `Cmd + Spazio`) oppure il Prompt dei comandi (Windows: cerca "cmd")
-2. Scegli dove mettere il progetto, ad esempio il Desktop:
-   ```
-   cd Desktop
-   ```
-3. Scarica il progetto con questo comando (copia e incolla):
-   ```
-   git clone https://github.com/doxee-marketing/hubspot-deal-engagement.git
-   ```
-4. Entra nella cartella appena creata:
-   ```
-   cd hubspot-deal-engagement
-   ```
+1. Open Terminal (Mac: search "Terminal" with `Cmd + Space`) or Command Prompt (Windows: search "cmd")
+2. Navigate to where you want to save the project, e.g. the Desktop:
+	cd desktop
+3. Download the project (copy and paste):
+	git clone [https://github.com/Doxee-Marketing/marketing-automation.git](https://github.com/Doxee-Marketing/marketing-automation.git)
+4. Enter the folder: 
+	cd marketing-automation/deal-engagement
+> If the terminal says `git: command not found`, install Git from [git-scm.com/downloads](https://git-scm.com/downloads) and start again from step 1.
 
-> Se il terminale dice `git: command not found`, installa Git da [git-scm.com/downloads](https://git-scm.com/downloads) e ripeti dal punto 1.
+### 3. Set up the HubSpot token (first time only)
 
-### 3. Configura il token HubSpot (solo al primo utilizzo)
+The token is the key that allows the script to read data from HubSpot.
 
-Il token è la "chiave" che permette al programma di leggere i dati da HubSpot. Per ottenerlo:
-
-1. Accedi a HubSpot
-2. Vai in **Impostazioni** (icona ingranaggio in alto a destra)
-3. Nel menu laterale: **Integrazioni → App private**
-4. Clicca **"Crea app privata"**
-5. Dai un nome (es. "Deal Engagement Extractor")
-6. Vai nella scheda **Ambiti** e spunta:
+To get one:
+1. Log in to HubSpot
+2. Go to **Settings** (gear icon, top right)
+3. In the sidebar: **Integrations → Private Apps**
+4. Click **"Create a private app"**
+5. Give it a name (e.g. "Deal Engagement Extractor")
+6. Go to the **Scopes** tab and check:
    - `crm.lists.read`
    - `crm.objects.deals.read`
    - `crm.objects.contacts.read`
    - `crm.objects.companies.read`
    - `crm.associations.read`
-7. Clicca **"Crea app"** → copia il token che appare (inizia con `pat-eu1-...`)
+7. Click **"Create app"** → copy the token shown (starts with `pat-eu1-...`)
 
-Ora incolla il token nel progetto:
-1. Apri la cartella del progetto
-2. Entra nella sottocartella `src/`
-3. Cerca il file `.env.example` — se non lo vedi, attiva la visualizzazione dei file nascosti:
-   - **Mac:** nel Finder premi `Cmd + Shift + .`
-   - **Windows:** in Esplora File → Visualizza → spunta "Elementi nascosti"
-4. Copia il file `.env.example` e rinomina la copia in `.env` (togli `.example`)
-5. Apri `.env` con un editor di testo (Blocco Note su Windows, TextEdit su Mac)
-6. Sostituisci `pat-eu1-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` con il token che hai copiato
-7. Salva e chiudi
+Now add the token to the project:
+1. Open the project folder
+2. Go into the `src/` subfolder
+3. Find the file `.env.example` — if you can't see it, enable hidden files:
+   - **Mac:** in Finder press `Cmd + Shift + .`
+   - **Windows:** in File Explorer → View → check "Hidden items"
+4. Copy `.env.example` and rename the copy to `.env` (remove `.example`)
+5. Open `.env` with a text editor (Notepad on Windows, TextEdit on Mac)
+6. Replace `pat-eu1-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` with your token
+7. Save and close
 
-### 4. Avvia il programma
+### 4. Run the program
 
-- **Mac:** doppio click su `start.command` nella cartella principale
-- **Windows:** doppio click su `src/start.bat`
+- **Mac:** double-click `start.command` in the main folder
+- **Windows:** double-click `src/start.bat`
 
-**Primo avvio:** si apre una finestra nera e installa tutto il necessario. Ci vuole circa 1 minuto. Non chiuderla.
+**First run:** a black window opens and installs all dependencies. This takes about 1 minute. Do not close it.
 
-Quando vedi `You can now view your Streamlit app in your browser`, il programma è pronto. Si apre automaticamente il browser su `http://localhost:8501`.
+When you see `You can now view your Streamlit app in your browser`, the program is ready. Your browser will open automatically at `http://localhost:8501`.
 
-> **Mac — messaggio di sicurezza al primo avvio:** se compare "Impossibile aprire perché proviene da uno sviluppatore non identificato", hai due opzioni:
+> **Mac — security warning on first run:** if you see "cannot be opened because the developer cannot be verified", you have two options:
 >
-> **Opzione A — da Terminale (più veloce):** apri il Terminale, entra nella cartella del progetto e lancia:
+> **Option A — via Terminal (faster):** open Terminal, navigate to the project folder and run:
 > ```
 > xattr -rd com.apple.quarantine .
 > ```
-> Poi prova di nuovo a fare doppio click su `start.command`.
+> Then try double-clicking `start.command` again.
 >
-> **Opzione B — da Impostazioni:** vai in **Impostazioni di sistema → Privacy e sicurezza**, scorri in fondo — comparirà un avviso con il pulsante **"Apri comunque"**. Clicca lì.
+> **Option B — via Settings:** go to **System Settings → Privacy & Security**, scroll down — an alert will appear with an **"Open Anyway"** button. Click it.
 
-### 5. Usa la dashboard
+### 5. Use the dashboard
 
-Una volta aperta la webapp nel browser, trovi una barra laterale a sinistra con tutti i parametri e il risultato al centro.
+Once the web app opens in your browser, you'll find a sidebar on the left with all the parameters and the results in the centre.
 
-#### HubSpot List ID — quale mettere
+#### HubSpot List ID — which one to use
 
-Il List ID è il "filtro di partenza": dice allo script da quale segmento di deal partire. I due da usare normalmente sono:
+The List ID is the starting filter: it tells the script which deal segment to pull from. The two standard ones are:
 
-| ID | Segmento |
+| ID | Segment |
 |---|---|
-| `17621` | Tutte le opportunities del 2026 |
-| `17603` | Opportunities del mese corrente |
+| `17621` | All 2026 opportunities |
+| `17603` | Current month opportunities |
 
-Se in futuro vuoi usare un altro segmento: vai su HubSpot → **CRM → Segments → Lists**, apri la lista che ti interessa → **Details** → in fondo alla pagina trovi il campo **ILS Segment ID**. Quel numero è il tuo List ID.
+To use a different segment in the future: go to HubSpot → **CRM → Segments → Lists**, open the list you want → **Details** → at the bottom of the page find the **ILS Segment ID** field. That number is your List ID.
 
-#### Score property — quale scegliere
+#### Score property — which one to choose
 
-| Property | Quando usarla |
+| Property | When to use it |
 |---|---|
-| `lead_score_contacts_total` | Punteggio complessivo del contatto (default) |
-| `lead_score_contacts_engagement` | Se vuoi misurare solo le attività di engagement marketing (email aperte, click, form compilati, ecc.) — equivalente alla colonna "Engagement/Activity" richiesta manualmente |
+| `lead_score_contacts_total` | Overall contact score (default) |
+| `lead_score_contacts_engagement` | Use this to measure only marketing engagement activity (emails opened, clicks, forms submitted, etc.) — equivalent to the "Engagement/Activity" column previously filled in manually |
 
-> Per capire quali contatti sono stati attivi negli ultimi mesi dal punto di vista marketing, usa `lead_score_contacts_engagement`. È la property che traccia tutte le azioni di interazione del singolo contatto.
+> To identify contacts who have been marketing-active in recent months, use `lead_score_contacts_engagement`. It tracks all interaction actions for each individual contact.
 
-#### Score threshold — come filtrare
+#### Score threshold — how to filter
 
-Imposta la soglia minima del punteggio per far apparire un contatto nel report:
+Set the minimum score for a contact to appear in the report:
+- **Leave at 0 (or empty)** → all contacts with any score appear; only unscored contacts are excluded
+- **Set to 5** → only "Medium" and "High engagement"
+- **Set to 10** → only "High engagement"
 
-- **Lasciala a 0 (o vuota)** → compaiono tutti i contatti che hanno almeno uno score, esclusi solo quelli non ancora scorati
-- **Metti 5** → solo "Medium" e "High engagement"
-- **Metti 10** → solo "High engagement"
+#### Cache — when to enable or disable
 
-#### Cache — quando attivarla o disattivarla
+The **"Use local cache"** checkbox reuses data already downloaded from HubSpot (saved in `src/data/cache/`). This makes re-runs much faster (~3 seconds instead of ~30) and doesn't consume API calls.
 
-La spunta **"Use local cache"** riutilizza i dati già scaricati da HubSpot (salvati in `src/data/cache/`). Questo rende il re-run molto più veloce (~3 secondi invece di ~30) e non consuma chiamate API.
+- **Leave it on** if you're only changing the threshold or property, with no need for fresh data
+- **Turn it off** if you want the script to re-read everything from HubSpot (data current as of now)
 
-- **Lasciala attiva** se stai solo cambiando soglia o property, senza bisogno di dati freschi
-- **Toglila** se vuoi che lo script rilegga tutto da HubSpot (dati aggiornati al momento)
+#### Generate and export
 
-#### Genera ed esporta
+1. Click **"Generate report"** and wait for the progress bar
+2. Four KPIs appear at the top: number of deals, accounts, engaged contacts, total pipeline in €
+3. Below is a preview table with all the data
+4. Click **"Download XLSX"** to download the file
 
-1. Clicca **"Genera report"** e aspetta la progress bar
-2. In alto appaiono 4 KPI: numero di deal, account, contatti engaged, pipeline totale in €
-3. Sotto c'è la tabella di anteprima con tutti i dati
-4. Clicca **"Scarica XLSX"** per scaricare il file
+The file is also saved in `src/output/` as `hubspot_deal_report_<date_time>.xlsx`.
 
-Il file viene salvato anche in `src/output/` con nome `hubspot_deal_report_<data_ora>.xlsx`.
+### 6. Close the program
 
-### 6. Chiudi il programma
-
-Chiudi la finestra del terminale/prompt dei comandi che si è aperta al punto 4.
+Close the terminal/command prompt window that opened in step 4.
 
 ---
 
 ## Output
 
-`src/output/hubspot_deal_report_<YYYYMMDD_HHmm>.xlsx` — due fogli:
+`src/output/hubspot_deal_report_<YYYYMMDD_HHmm>.xlsx` — two sheets:
 
-**Foglio 1 — Deal Report** (una riga per contatto)
+**Sheet 1 — Deal Report** (one row per contact)
 
 | Account Name | Opportunity Name | Amount (€) | Close Date | Contact Name | Job Title | Email | Lead Score |
 |---|---|---|---|---|---|---|---|
 
-**Foglio 2 — Legend**
+**Sheet 2 — Legend**
 
-| Score | Fascia |
+| Score | Band |
 |---|---|
 | ≥ 10 | High engagement |
 | 5–9 | Medium engagement |
@@ -156,27 +149,27 @@ Chiudi la finestra del terminale/prompt dei comandi che si è aperta al punto 4.
 
 ---
 
-## Configurazione avanzata (`src/config.yaml`)
+## Advanced configuration (`src/config.yaml`)
 
 ```yaml
-list_id: 17603                        # ID segmento HubSpot
-score_property: lead_score_contacts_total  # property score
-score_threshold: null                 # null = escludi solo non-scorati
+list_id: 17603                             # HubSpot segment ID
+score_property: lead_score_contacts_total  # score property
+score_threshold: null                      # null = exclude only unscored contacts
 output_dir: ./output
 cache_dir: ./data/cache
 ```
 
 ---
 
-## Documentazione tecnica
+## Technical documentation
 
-→ [`src/README.md`](src/README.md) — pipeline step-by-step, decisioni di design, punti aperti.
+→ [`src/README.md`](src/README.md) — step-by-step pipeline, design decisions, open points.
 
 ---
 
-## Cosa non fa
+## What it does not do
 
-- Non scrive su HubSpot
-- Non si connette a Salesforce
-- Non gira in automatico (nessuno scheduling)
-- Non legge activities o email — il lead score è l'unico proxy di engagement
+- Does not write to HubSpot
+- Does not connect to Salesforce
+- Does not run automatically (no scheduling)
+- Does not read activities or emails — lead score is the only engagement proxy
