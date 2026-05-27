@@ -3,7 +3,7 @@ Event Mailer — wizard primo avvio.
 
 - Autorileva il file .ics nella cartella ed estrae la keyword dal campo SUMMARY.
 - Chiede tenant_id, client_id, client_secret una sola volta.
-- Salva config.json (no secrets) + client_secret nel macOS Keychain via 'keyring'.
+- Salva config.json (no secrets) + client_secret nel sistema via 'keyring'.
 """
 
 import getpass
@@ -45,10 +45,21 @@ def _pick_ics():
 
 
 def _parse_summary(ics_path):
-    text = ics_path.read_text(encoding="utf-8", errors="ignore")
-    for line in text.splitlines():
-        if line.startswith("SUMMARY:"):
-            return line[len("SUMMARY:"):].strip()
+    # Outlook su Windows salva spesso in UTF-16; proviamo più encoding.
+    for enc in ("utf-8-sig", "utf-16", "utf-8", "latin-1"):
+        try:
+            text = ics_path.read_text(encoding=enc)
+        except (UnicodeDecodeError, LookupError):
+            continue
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("SUMMARY:"):
+                return stripped[len("SUMMARY:"):].strip()
+            # Outlook a volte usa SUMMARY;LANGUAGE=xx: oppure SUMMARY;ENCODING=...:
+            if stripped.startswith("SUMMARY;"):
+                colon = stripped.find(":")
+                if colon != -1:
+                    return stripped[colon + 1:].strip()
     return None
 
 
