@@ -150,6 +150,12 @@
         </svg>
         Enrich with Apollo
       </button>
+      <button class="btn btn-outline" id="btn-score" onclick="recomputeScores()" title="Recompute the fit score from existing fields, without calling Apollo">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V9m4 8V5m4 12v-4M5 21h14"/>
+        </svg>
+        Compute score
+      </button>
       <button class="btn btn-outline" onclick="exportXLSX()">Export XLSX</button>
       <button class="btn btn-danger" id="btn-delete" disabled onclick="deleteSelected()">Delete selected</button>
       <button class="btn btn-ghost" onclick="resetApp()">New file</button>
@@ -184,8 +190,8 @@
 <div id="toast"></div>
 
 <script>
-// `derive` indica che il valore mostrato/esportato è normalizzato per HubSpot
-// (range, label industry, ecc.) a partire dal valore grezzo del lead.
+// `derive` means the displayed/exported value is normalized for HubSpot
+// (range, industry label, etc.) starting from the lead's raw value.
 const COLUMNS = [
   { key:'salutation',       label:'Sal.',              text:true },
   { key:'first_name',       label:'First Name',        text:true },
@@ -201,7 +207,7 @@ const COLUMNS = [
   { key:'_score',           label:'Score' },
 ];
 
-// Calcola il valore "HubSpot-ready" di una colonna a partire dal lead grezzo.
+// Computes the "HubSpot-ready" value of a column from the raw lead.
 function displayValue(lead, col) {
   const M = window.HubSpotMapping;
   switch (col.derive) {
@@ -233,6 +239,8 @@ let sortAsc = true;
 let enriching = false;
 let stopFlag = false;
 let nextId = 1;
+let sessionEnrichCount = 0;   // Apollo calls made in THIS browser session
+let monthlyLimit = 30020;     // total available (read from the backend in loadUsage)
 const selectedIds = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -247,13 +255,21 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadUsage() {
   try {
     const d = await (await fetch('/api/usage')).json();
-    updateUsageBadge(d.calls_used, d.monthly_limit);
-  } catch (_) { document.getElementById('usage-text').textContent = 'Quota N/A'; }
+    if (d.monthly_limit) monthlyLimit = d.monthly_limit;
+  } catch (_) { /* fall back to the default monthlyLimit */ }
+  renderUsageBadge();
 }
 
-function updateUsageBadge(used, limit) {
-  const pct = Math.min(100, Math.round((used / limit) * 100));
-  document.getElementById('usage-text').textContent = `${used}/${limit} calls`;
+// NB: the real Apollo call count is not readable from the app
+// (the local usage.json is not reliable). We show the calls made in this
+// session + the total available, and point to Apollo for the real figure.
+function renderUsageBadge() {
+  const fmt = n => Number(n).toLocaleString('en-US');
+  document.getElementById('usage-text').innerHTML =
+    `${fmt(sessionEnrichCount)} enrichment calls this session ` +
+    `(${fmt(monthlyLimit)} available — to see how many used so far: ` +
+    `<a href="https://developer.apollo.io" target="_blank" rel="noopener">developer.apollo.io</a>)`;
+  const pct = Math.min(100, Math.round((sessionEnrichCount / monthlyLimit) * 100));
   const f = document.getElementById('quota-fill');
   f.style.width = pct + '%';
   f.className = 'quota-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
@@ -475,6 +491,22 @@ function renderTable() {
 
 function sortBy(col) { if(sortCol===col)sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;} renderTable(); }
 
+/* ---------------- Score-only (no Apollo calls) ---------------- */
+
+// Recomputes the fit score of every lead using only fields already present.
+// Useful for already-enriched files: zero Apollo quota consumed.
+function recomputeScores() {
+  if (!leads.length) { showToast('No leads loaded.', 'error'); return; }
+  const enrichable = ['job_title','company','industry','company_size','revenue','country'];
+  for (const l of leads) {
+    l._score = computeScore(l);
+    // mark already-filled fields as "present" so the table highlights them
+    l._enriched = enrichable.filter(k => l[k] !== undefined && String(l[k]).trim() !== '');
+  }
+  renderTable();
+  showToast(`Score computed on ${leads.length} leads — no Apollo call consumed.`, 'success');
+}
+
 /* ---------------- Enrichment ---------------- */
 
 async function startEnrichment() {
@@ -493,6 +525,8 @@ async function startEnrichment() {
     try {
       const res = await fetch('/api/enrich',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:lead.email,first_name:lead.first_name,last_name:lead.last_name})});
       if(res.status===429){pl.textContent='Apollo monthly quota exhausted.';break;}
+      // the call was consumed on Apollo (match or not): count it
+      sessionEnrichCount++; renderUsageBadge();
       const d=await res.json();
       if(res.ok){
         const en=[];
@@ -503,7 +537,6 @@ async function startEnrichment() {
         if(d.industry){lead.industry=d.industry;en.push('industry');}
         if(d.country){lead.country=d.country;en.push('country');}
         lead._enriched=en; lead._score=computeScore(lead);
-        if(d.calls_used!==undefined) updateUsageBadge(d.calls_used,d.calls_used+d.calls_remaining);
       }
     } catch(_){}
     done++;
@@ -520,10 +553,10 @@ async function startEnrichment() {
 
 function exportXLSX() {
   const M = window.HubSpotMapping;
-  // Header = nomi property HubSpot. Valori normalizzati per matchare i dropdown:
-  //  - "Number of Employees" e "Company Size" (=revenue) → range predefiniti
-  //  - "Industry" / "Industry ridotte"                   → label esatte HubSpot
-  //  - campi testo                                       → Title Case
+  // Header = HubSpot property names. Values normalized to match the dropdowns:
+  //  - "Number of Employees" and "Company Size" (=revenue) → preset ranges
+  //  - "Industry" / "Industry ridotte"                     → exact HubSpot labels
+  //  - text fields                                         → Title Case
   const rows=leads.map(l=>({
     'Salutation':           M.titleCase(l.salutation||''),
     'First Name':           M.titleCase(l.first_name||''),

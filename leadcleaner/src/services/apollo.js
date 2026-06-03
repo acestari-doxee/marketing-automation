@@ -1,13 +1,12 @@
 /**
  * Apollo.io client — isolates outbound calls to Apollo's /people/match endpoint.
  *
- * Questo è l'unico posto del codice che parla con Apollo.
- * Il resto del progetto chiama `matchPerson(...)` e non sa nulla
- * di URL, header, parsing della risposta.
+ * This is the only place in the code that talks to Apollo.
+ * The rest of the project calls `matchPerson(...)` and knows nothing
+ * about URLs, headers, or response parsing.
  *
- * Perché isolato: se un giorno Apollo cambia endpoint, o passiamo
- * a `/organization/match` per motivi GDPR (vedi PUBLICATION_PLAN.md
- * riga 151, mitigazione GDPR), modifichiamo SOLO questo file.
+ * Why isolated: if one day Apollo changes endpoint, or we switch
+ * to `/organization/match` for GDPR reasons, we change ONLY this file.
  */
 
 'use strict';
@@ -20,7 +19,7 @@ const APOLLO_MATCH_URL = 'https://api.apollo.io/api/v1/people/match';
  * Calls Apollo /people/match and returns normalized fields.
  *
  * @param {object} params
- * @param {string} params.apiKey     Apollo API key (iniettata dal chiamante, mai letta da env qui).
+ * @param {string} params.apiKey     Apollo API key (injected by the caller, never read from env here).
  * @param {string} [params.email]
  * @param {string} [params.firstName]
  * @param {string} [params.lastName]
@@ -34,9 +33,9 @@ const APOLLO_MATCH_URL = 'https://api.apollo.io/api/v1/people/match';
  *   errorMessage: string|null,
  * }>}
  *
- * Non throwa su errori Apollo: ritorna sempre un oggetto con `ok: false`
- * così il chiamante può decidere se loggare, contare la quota, restituire 502 ecc.
- * Throwa solo su errori di rete/parsing irrecuperabili.
+ * Does not throw on Apollo errors: always returns an object with `ok: false`
+ * so the caller can decide whether to log, count quota, return 502, etc.
+ * Throws only on unrecoverable network/parsing errors.
  */
 async function matchPerson({ apiKey, email, firstName, lastName }) {
   if (!apiKey) {
@@ -46,8 +45,8 @@ async function matchPerson({ apiKey, email, firstName, lastName }) {
     throw new Error('apolloClient.matchPerson: provide at least email or name fields');
   }
 
-  // Costruisco il payload solo con i campi presenti.
-  // Apollo accetta match parziale: se non hai l'email cerca per nome+cognome.
+  // Build the payload only with the fields present.
+  // Apollo accepts partial match: without an email it searches by first+last name.
   const payload = {};
   if (email) payload.email = email;
   if (firstName) payload.first_name = firstName;
@@ -67,8 +66,8 @@ async function matchPerson({ apiKey, email, firstName, lastName }) {
   try {
     json = JSON.parse(rawText);
   } catch (_) {
-    // Apollo ha risposto qualcosa di non-JSON (pagina HTML di rate limit, errore 5xx).
-    // Non è un crash: segnaliamo al chiamante che la risposta è inutilizzabile.
+    // Apollo replied with something non-JSON (rate-limit HTML page, 5xx error).
+    // Not a crash: signal to the caller that the response is unusable.
     return {
       ok: false,
       status: apolloRes.status,
@@ -90,8 +89,8 @@ async function matchPerson({ apiKey, email, firstName, lastName }) {
     };
   }
 
-  // Apollo può tornare 200 anche senza match: person = null.
-  // È una "call consumata senza dati".
+  // Apollo can return 200 even without a match: person = null.
+  // It's a "call consumed with no data".
   const person = json.person || null;
   return {
     ok: true,
@@ -99,8 +98,8 @@ async function matchPerson({ apiKey, email, firstName, lastName }) {
     jobTitle: person?.title || null,
     company: person?.organization?.name || null,
     companySize: person?.organization?.estimated_num_employees || null,
-    // Fatturato grezzo (USD). Apollo usa `organization_revenue`; alcune risposte
-    // espongono `annual_revenue`. 0/null = sconosciuto → il mapping lo tratta come vuoto.
+    // Raw revenue (USD). Apollo uses `organization_revenue`; some responses
+    // expose `annual_revenue`. 0/null = unknown → the mapping treats it as empty.
     revenue: person?.organization?.organization_revenue ?? person?.organization?.annual_revenue ?? null,
     industry: person?.organization?.industry || null,
     country: person?.country || null,

@@ -1,21 +1,21 @@
 /**
- * hubspot-mapping.js — normalizzazione valori → formato accettato da HubSpot.
+ * hubspot-mapping.js — normalize values → format accepted by HubSpot.
  *
- * Nasce dal feedback di Federica (giu 2026): l'import HubSpot scartava i valori
- * perché non combaciavano con i dropdown predefiniti ("Invalid enumeration option").
+ * Born from Federica's feedback (Jun 2026): the HubSpot import dropped values
+ * because they didn't match the preset dropdowns ("Invalid enumeration option").
  *
- * Cosa normalizza:
- *  - Number of Employees: numero grezzo Apollo → range HubSpot (5-25, 25-50, ...)
- *  - Company Size (= REVENUE su HubSpot): fatturato grezzo → range (< 2 million, ...)
- *  - Industry: stringa Apollo → label esatta della property "Industry" HubSpot
- *  - Industry ridotte: label Industry → categoria della property "Industry ridotte"
- *  - Title Case: prima lettera maiuscola per ogni parola sui campi di testo
+ * What it normalizes:
+ *  - Number of Employees: raw Apollo number → HubSpot range (5-25, 25-50, ...)
+ *  - Company Size (= REVENUE on HubSpot): raw revenue → range (< 2 million, ...)
+ *  - Industry: Apollo string → exact label of the "Industry" HubSpot property
+ *  - Industry ridotte: Industry label → category of the "Industry ridotte" property
+ *  - Title Case: first letter of each word uppercased on text fields
  *
- * NB su HubSpot:
- *  - "Number of Employees" = numero dipendenti (range)
- *  - "Company Size"        = fatturato/revenue (range)   ← non i dipendenti!
+ * Note on HubSpot:
+ *  - "Number of Employees" = employee count (range)
+ *  - "Company Size"        = revenue (range)   ← not the employee count!
  *
- * Funziona sia nel browser (window.HubSpotMapping) sia in Node (module.exports).
+ * Works both in the browser (window.HubSpotMapping) and in Node (module.exports).
  */
 (function (root, factory) {
   const api = factory();
@@ -27,7 +27,7 @@
   /* ------------------------------------------------------------------ *
    * 1. NUMBER OF EMPLOYEES → range HubSpot
    * ------------------------------------------------------------------ */
-  // Range esatti del dropdown HubSpot. Lower-inclusive, upper-exclusive.
+  // Exact HubSpot dropdown ranges. Lower-inclusive, upper-exclusive.
   function employeesRange(value) {
     const n = parseInt(value, 10);
     if (!n || n <= 0) return '';
@@ -42,7 +42,7 @@
   /* ------------------------------------------------------------------ *
    * 2. COMPANY SIZE (REVENUE) → range HubSpot
    * ------------------------------------------------------------------ */
-  // Apollo dà il fatturato in valore assoluto (USD). 0/null = sconosciuto → vuoto.
+  // Apollo gives revenue as an absolute value (USD). 0/null = unknown → empty.
   function revenueRange(value) {
     const n = Number(value);
     if (!n || n <= 0) return '';
@@ -55,7 +55,7 @@
   /* ------------------------------------------------------------------ *
    * 3. TITLE CASE
    * ------------------------------------------------------------------ */
-  // Acronimi/sigle da tenere maiuscole (altrimenti "CEO" → "Ceo").
+  // Acronyms to keep uppercase (otherwise "CEO" → "Ceo").
   const ACRONYMS = new Set([
     'IT','ICT','CEO','CTO','CIO','CFO','COO','CMO','CCO','CDO','CHRO',
     'CRM','ERP','HR','VP','SVP','EVP','AVP','PR','UK','US','USA','EU','UAE',
@@ -71,8 +71,8 @@
     return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
   }
 
-  // Capitalizza ogni parola; tratta spazi, '-', "'", '/' come separatori
-  // mantenendoli (così "D'Ieteren", "Coca-Cola", "Telecom/Media" restano corretti).
+  // Capitalize each word; treat spaces, '-', "'", '/' as separators
+  // and keep them (so "D'Ieteren", "Coca-Cola", "Telecom/Media" stay correct).
   function titleCase(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -91,7 +91,7 @@
   /* ------------------------------------------------------------------ *
    * 4. INDUSTRY → label HubSpot
    * ------------------------------------------------------------------ */
-  // Tutte le label ATTIVE (non [HIDDEN]) della property "Industry" HubSpot.
+  // All ACTIVE labels (non [HIDDEN]) of the HubSpot "Industry" property.
   const HUBSPOT_INDUSTRIES = [
     'Accounting','Agriculture','Airlines/Aviation','Alternative Dispute Resolution',
     'Alternative Medicine','Animation','Apparel & Fashion','Architecture & Planning',
@@ -131,7 +131,7 @@
     'Health Care','Aviation & Aerospace','Consulting','Food and Beverage'
   ];
 
-  // chiave normalizzata: minuscolo, & → and, via tutto ciò che non è alfanumerico.
+  // normalized key: lowercase, & → and, strip everything non-alphanumeric.
   function normIndustryKey(s) {
     return String(s || '')
       .toLowerCase()
@@ -139,12 +139,12 @@
       .replace(/[^a-z0-9]+/g, '');
   }
 
-  // Indice label-canonica per lookup robusto (gestisce "&" vs "and", punteggiatura, case).
+  // Canonical-label index for robust lookup (handles "&" vs "and", punctuation, case).
   const INDUSTRY_INDEX = {};
   HUBSPOT_INDUSTRIES.forEach(label => { INDUSTRY_INDEX[normIndustryKey(label)] = label; });
 
-  // Alias per i casi in cui Apollo usa una dicitura diversa dalla label HubSpot
-  // (i "4 leggermente diversi" segnalati da Federica + varianti note Apollo/LinkedIn).
+  // Aliases for cases where Apollo uses a wording different from the HubSpot label
+  // (the "4 slightly different" ones flagged by Federica + known Apollo/LinkedIn variants).
   const INDUSTRY_ALIASES = {
     'informationtechnologyandservices': 'Information Technology and Services',
     'informationtechnologyservices':    'Information Technology and Services',
@@ -170,20 +170,20 @@
     'graphicdesign':                    'Graphic Design'
   };
 
-  // Apollo → label "Industry" HubSpot. Se non trova match, Title Case del valore grezzo.
+  // Apollo → HubSpot "Industry" label. If no match, Title Case the raw value.
   function toHubSpotIndustry(raw) {
     if (!raw) return '';
     const key = normIndustryKey(raw);
     if (!key) return '';
     if (INDUSTRY_ALIASES[key]) return INDUSTRY_ALIASES[key];
     if (INDUSTRY_INDEX[key])   return INDUSTRY_INDEX[key];
-    return titleCase(raw); // fallback: almeno formattata, da correggere a mano se serve
+    return titleCase(raw); // fallback: at least formatted, fix by hand if needed
   }
 
   /* ------------------------------------------------------------------ *
    * 5. INDUSTRY → INDUSTRY RIDOTTE
    * ------------------------------------------------------------------ */
-  // label "Industry" HubSpot → categoria "Industry ridotte" HubSpot.
+  // HubSpot "Industry" label → HubSpot "Industry ridotte" category.
   const INDUSTRY_TO_RIDOTTA = {
     'Accounting': 'Banking & Finance',
     'Agriculture': 'Rural Sectors',
@@ -341,7 +341,7 @@
     'Food and Beverage': 'Food & Beverages'
   };
 
-  // raw (Apollo) → categoria "Industry ridotte". Passa prima per la label canonica.
+  // raw (Apollo) → "Industry ridotte" category. Goes through the canonical label first.
   function toIndustryRidotta(raw) {
     const full = toHubSpotIndustry(raw);
     if (!full) return '';

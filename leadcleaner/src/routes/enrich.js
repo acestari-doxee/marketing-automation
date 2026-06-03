@@ -37,7 +37,7 @@ function createEnrichRouter({ apiKey, usageTracker }) {
       return res.status(502).json({ error: 'Network error contacting Apollo.' });
     }
 
-    // Registra la chiamata (sempre, anche se non trovato)
+    // Record the call (always, even if not found)
     usageTracker.recordCall();
 
     if (!result.ok) {
