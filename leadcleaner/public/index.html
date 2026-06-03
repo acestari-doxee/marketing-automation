@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Lead Cleaner — Doxee</title>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="hubspot-mapping.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -29,7 +30,11 @@
   header { background:var(--white); border-bottom:1px solid var(--border); padding:0 32px; height:56px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
   .logo { font-size:15px; font-weight:700; letter-spacing:-.3px; }
   .logo span { color:var(--accent); }
-  #usage-badge { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); }
+  #usage-badge { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .quota-bar { width:80px; height:5px; background:var(--border); border-radius:99px; overflow:hidden; }
+  .quota-fill { height:100%; background:var(--accent); border-radius:99px; transition:width .3s; }
+  .quota-fill.warn { background:var(--yellow); }
+  .quota-fill.danger { background:var(--red); }
 
   /* Main */
   main { max-width:1100px; margin:32px auto; padding:0 24px; }
@@ -115,15 +120,15 @@
   #toast.visible { display:block; }
   #toast.success { border-left-color:var(--green); }
   #toast.error   { border-left-color:var(--red); }
-
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">Lead<span>Cleaner</span></div>
-  <div id="usage-badge" title="Enrichments made via LeadCleaner since install">
-    <span id="usage-text">—</span>
+  <div id="usage-badge">
+    <span id="usage-text">Loading quota...</span>
+    <div class="quota-bar"><div class="quota-fill" id="quota-fill" style="width:0%"></div></div>
   </div>
 </header>
 
@@ -179,18 +184,35 @@
 <div id="toast"></div>
 
 <script>
+// `derive` indica che il valore mostrato/esportato è normalizzato per HubSpot
+// (range, label industry, ecc.) a partire dal valore grezzo del lead.
 const COLUMNS = [
-  { key:'salutation',   label:'Sal.' },
-  { key:'first_name',   label:'First Name' },
-  { key:'last_name',    label:'Last Name' },
-  { key:'email',        label:'Email' },
-  { key:'job_title',    label:'Job Title',     enriched:true },
-  { key:'company',      label:'Company' },
-  { key:'industry',     label:'Industry',      enriched:true },
-  { key:'company_size', label:'Company Size',  enriched:true },
-  { key:'country',      label:'Country' },
-  { key:'_score',       label:'Score' },
+  { key:'salutation',       label:'Sal.',              text:true },
+  { key:'first_name',       label:'First Name',        text:true },
+  { key:'last_name',        label:'Last Name',         text:true },
+  { key:'email',            label:'Email' },
+  { key:'job_title',        label:'Job Title',         enriched:true, text:true },
+  { key:'company',          label:'Company',           text:true },
+  { key:'industry',         label:'Industry',          enriched:true, derive:'industry' },
+  { key:'industry_ridotte', label:'Industry ridotte',  enriched:true, derive:'ridotta' },
+  { key:'company_size',     label:'Number of Employees',enriched:true, derive:'employees' },
+  { key:'revenue',          label:'Company Size (revenue)', enriched:true, derive:'revenue' },
+  { key:'country',          label:'Country',           text:true },
+  { key:'_score',           label:'Score' },
 ];
+
+// Calcola il valore "HubSpot-ready" di una colonna a partire dal lead grezzo.
+function displayValue(lead, col) {
+  const M = window.HubSpotMapping;
+  switch (col.derive) {
+    case 'industry':  return M.toHubSpotIndustry(lead.industry);
+    case 'ridotta':   return M.toIndustryRidotta(lead.industry);
+    case 'employees': return M.employeesRange(lead.company_size);
+    case 'revenue':   return M.revenueRange(lead.revenue);
+    default:
+      return col.text ? M.titleCase(lead[col.key] || '') : (lead[col.key] || '');
+  }
+}
 
 const ALIASES = {
   salutation:   ['salutation','anrede','salut','titolo','sal'],
@@ -200,7 +222,8 @@ const ALIASES = {
   job_title:    ['job title','job_title','title','jobtitle','funzione','ruolo','position','berufsbezeichnung','fonction'],
   company:      ['company','firma','entreprise','azienda','organization'],
   industry:     ['industry','branche','secteur','settore'],
-  company_size: ['company size','company_size','employees','mitarbeiter','employés','dipendenti'],
+  company_size: ['number of employees','company size','company_size','employees','mitarbeiter','employés','dipendenti'],
+  revenue:      ['revenue','annual revenue','fatturato','umsatz','chiffre d\'affaires','ricavi'],
   country:      ['country','land','pays','paese','country/region','country-region'],
 };
 
@@ -224,14 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadUsage() {
   try {
     const d = await (await fetch('/api/usage')).json();
-    updateUsageBadge(d.calls_used);
-  } catch (_) { document.getElementById('usage-text').textContent = '— enrichments'; }
+    updateUsageBadge(d.calls_used, d.monthly_limit);
+  } catch (_) { document.getElementById('usage-text').textContent = 'Quota N/A'; }
 }
 
-function updateUsageBadge(used) {
-  const n = used ?? 0;
-  document.getElementById('usage-text').textContent =
-    `${n.toLocaleString()} enrichment${n === 1 ? '' : 's'}`;
+function updateUsageBadge(used, limit) {
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+  document.getElementById('usage-text').textContent = `${used}/${limit} calls`;
+  const f = document.getElementById('quota-fill');
+  f.style.width = pct + '%';
+  f.className = 'quota-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
 }
 
 /* ---------------- Dedup / merge ---------------- */
@@ -272,7 +297,7 @@ function firstNonEmpty(arr) {
 function mergeCluster(records) {
   if (records.length === 1) return records[0];
   const merged = { _id: records[0]._id };
-  const fields = ['salutation','first_name','last_name','job_title','company','industry','company_size','country'];
+  const fields = ['salutation','first_name','last_name','job_title','company','industry','company_size','revenue','country'];
   for (const f of fields) merged[f] = firstNonEmpty(records.map(r => r[f]));
   merged.email = pickBestEmail(records.map(r => r.email).filter(Boolean));
   const scores = records.map(r => r._score).filter(s => s !== null && s !== undefined);
@@ -437,7 +462,7 @@ function renderTable() {
       const checkCell = `<td class="col-check"><input type="checkbox" class="row-check" data-id="${l._id}" ${checked} onchange="toggleRow(${l._id}, this.checked)"></td>`;
       const dataCells = COLUMNS.map(c => {
         if (c.key==='_score') { if(l._score===null)return'<td>—</td>'; const cl=l._score>=10?'score-green':l._score>=0?'score-yellow':'score-red'; return`<td><span class="score ${cl}">${l._score>0?'+':''}${l._score}</span></td>`; }
-        const v=l[c.key]||'';
+        const v=displayValue(l,c)||'';
         return `<td class="${c.enriched&&v?'enriched-val':''}" title="${v}">${v||'—'}</td>`;
       }).join('');
       return `<tr class="${rc}">${checkCell}${dataCells}</tr>`;
@@ -474,10 +499,11 @@ async function startEnrichment() {
         if(d.job_title){lead.job_title=d.job_title;en.push('job_title');}
         if(d.company){lead.company=d.company;en.push('company');}
         if(d.company_size){lead.company_size=String(d.company_size);en.push('company_size');}
+        if(d.revenue){lead.revenue=String(d.revenue);en.push('revenue');}
         if(d.industry){lead.industry=d.industry;en.push('industry');}
         if(d.country){lead.country=d.country;en.push('country');}
         lead._enriched=en; lead._score=computeScore(lead);
-        if(d.calls_used!==undefined) updateUsageBadge(d.calls_used);
+        if(d.calls_used!==undefined) updateUsageBadge(d.calls_used,d.calls_used+d.calls_remaining);
       }
     } catch(_){}
     done++;
@@ -493,7 +519,25 @@ async function startEnrichment() {
 /* ---------------- Export ---------------- */
 
 function exportXLSX() {
-  const rows=leads.map(l=>({'Salutation':l.salutation||'','First Name':l.first_name||'','Last Name':l.last_name||'','Email':l.email||'','Job Title':l.job_title||'','Company':l.company||'','Industry':l.industry||'','Company Size':l.company_size||'','Country':l.country||'','Score':l._score!==null?l._score:''}));
+  const M = window.HubSpotMapping;
+  // Header = nomi property HubSpot. Valori normalizzati per matchare i dropdown:
+  //  - "Number of Employees" e "Company Size" (=revenue) → range predefiniti
+  //  - "Industry" / "Industry ridotte"                   → label esatte HubSpot
+  //  - campi testo                                       → Title Case
+  const rows=leads.map(l=>({
+    'Salutation':           M.titleCase(l.salutation||''),
+    'First Name':           M.titleCase(l.first_name||''),
+    'Last Name':            M.titleCase(l.last_name||''),
+    'Email':                l.email||'',
+    'Job Title':            M.titleCase(l.job_title||''),
+    'Company':              M.titleCase(l.company||''),
+    'Industry':             M.toHubSpotIndustry(l.industry),
+    'Industry ridotte':     M.toIndustryRidotta(l.industry),
+    'Number of Employees':  M.employeesRange(l.company_size),
+    'Company Size':         M.revenueRange(l.revenue),
+    'Country':              M.titleCase(l.country||''),
+    'Score':                l._score!==null?l._score:''
+  }));
   const ws=XLSX.utils.json_to_sheet(rows), wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Leads');
   XLSX.writeFile(wb,`leads_enriched_${new Date().toISOString().slice(0,10)}.xlsx`);

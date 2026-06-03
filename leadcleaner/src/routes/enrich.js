@@ -15,15 +15,21 @@ function createEnrichRouter({ apiKey, usageTracker }) {
       return res.status(400).json({ error: 'Provide at least email or first/last name.' });
     }
 
+    // Controlla quota
     try {
       usageTracker.assertCanCall();
     } catch (err) {
       if (err instanceof QuotaExceededError) {
-        return res.status(429).json({ error: 'Apollo monthly quota exhausted.', calls_used: err.used });
+        return res.status(429).json({
+          error: 'Apollo monthly quota exhausted.',
+          calls_used: err.used,
+          monthly_limit: err.limit,
+        });
       }
       throw err;
     }
 
+    // Chiama Apollo
     let result;
     try {
       result = await apollo.matchPerson({ apiKey, email, firstName, lastName });
@@ -31,6 +37,7 @@ function createEnrichRouter({ apiKey, usageTracker }) {
       return res.status(502).json({ error: 'Network error contacting Apollo.' });
     }
 
+    // Registra la chiamata (sempre, anche se non trovato)
     usageTracker.recordCall();
 
     if (!result.ok) {
@@ -43,16 +50,18 @@ function createEnrichRouter({ apiKey, usageTracker }) {
       companySize: result.companySize,
     });
 
-    const { calls_used } = usageTracker.getSummary();
+    const summary = usageTracker.getSummary();
 
     return res.json({
-      job_title:    result.jobTitle,
-      company:      result.company,
-      company_size: result.companySize,
-      industry:     result.industry,
-      country:      result.country,
+      job_title:       result.jobTitle,
+      company:         result.company,
+      company_size:    result.companySize,
+      revenue:         result.revenue,
+      industry:        result.industry,
+      country:         result.country,
       score,
-      calls_used,
+      calls_used:      summary.calls_used,
+      calls_remaining: summary.calls_remaining,
     });
   });
 
