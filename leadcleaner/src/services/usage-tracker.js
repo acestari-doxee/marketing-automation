@@ -38,7 +38,12 @@ function createUsageTracker({ monthlyLimit, usageFile }) {
   return {
     getSummary() {
       const data = load();
-      return { month: data.month, calls_used: data.calls };
+      return {
+        month:           data.month,
+        calls_used:      data.calls,
+        calls_remaining: Math.max(0, monthlyLimit - data.calls),
+        monthly_limit:   monthlyLimit,
+      };
     },
 
     assertCanCall() {
