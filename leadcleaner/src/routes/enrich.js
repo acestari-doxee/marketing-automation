@@ -34,6 +34,7 @@ function createEnrichRouter({ apiKey, usageTracker }) {
     try {
       result = await apollo.matchPerson({ apiKey, email, firstName, lastName });
     } catch (err) {
+      console.error('[enrich] Apollo call failed:', err);
       return res.status(502).json({ error: 'Network error contacting Apollo.' });
     }
 
