@@ -8,6 +8,7 @@ Token (access + refresh) cachato in .token_cache.json (chmod 600).
 
 import base64
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -72,10 +73,20 @@ class AuthError(GraphError):
 # ── Config / cache / clipboard helpers ────────────────────────────────────────
 
 def _cfg():
+    """Config from config.json, overlaid with AZURE_* environment variables.
+    Env vars win, so secrets injected by the launcher (age) take precedence
+    over anything stored locally by the setup wizard."""
     try:
-        return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        cfg = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
     except Exception:
-        return {}
+        cfg = {}
+    env_tenant = os.environ.get("AZURE_TENANT_ID")
+    env_client = os.environ.get("AZURE_CLIENT_ID")
+    if env_tenant:
+        cfg["tenant_id"] = env_tenant
+    if env_client:
+        cfg["client_id"] = env_client
+    return cfg
 
 
 def _write_cfg(cfg):
@@ -87,11 +98,13 @@ def _authority():
 
 
 def _creds():
-    """Ritorna (client_id, client_secret). Il secret arriva dal Keychain."""
+    """Return (client_id, client_secret).
+    The secret comes from AZURE_CLIENT_SECRET (env, injected by the launcher via
+    age) when set; otherwise it falls back to the OS keychain via keyring."""
     cfg = _cfg()
     client_id = cfg.get("client_id", "")
-    secret = ""
-    if client_id:
+    secret = os.environ.get("AZURE_CLIENT_SECRET", "")
+    if not secret and client_id:
         try:
             secret = keyring.get_password(KEYRING_SERVICE, client_id) or ""
         except Exception:

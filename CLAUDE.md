@@ -31,7 +31,7 @@ Each automation is self-contained and has its own README, stack and environment 
 ## Before touching any code
 
 1. Read the README of the specific folder — it holds the flow, the configurable parameters and the constraints.
-2. Always copy `.env.example` → `.env` (or `config.example.json` → `config.json`). Never commit files with real credentials.
+2. Secrets are shared via one age-encrypted file at the repo root (`secrets.env.age`) — see `SECRETS.md`. The launchers decrypt it and inject the values as environment variables (`APOLLO_API_KEY`, `HUBSPOT_TOKEN`, `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`). A local `.env` / `config.json` still works as a fallback. Never commit real credentials, `secrets.env` (plaintext) or `age-key.txt`.
 3. Do not edit `usage.json` in `leadcleaner/` — it's the Apollo call counter and is managed by the server.
 
 ---

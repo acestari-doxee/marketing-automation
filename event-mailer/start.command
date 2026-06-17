@@ -1,38 +1,45 @@
 #!/bin/bash
-# Event Mailer — doppio click per avviare.
-# Tieni questa finestra del Terminale aperta finche' usi il pannello.
-# Chiudila (o premi Ctrl+C) per fermare il server.
+# Event Mailer — double-click to start.
+# Keep this Terminal window open while you use the dashboard.
+# Close it (or press Ctrl+C) to stop the server.
 
 cd "$(dirname "$0")" || exit 1
 
-# Trova Python 3
+# Find Python 3
 if command -v python3 >/dev/null 2>&1; then
     PY=python3
 elif command -v python >/dev/null 2>&1; then
     PY=python
 else
-    echo "[ERRORE] Python 3 non trovato."
-    echo "Installalo da https://www.python.org/downloads/ e riprova."
-    read -n 1 -p "Premi un tasto per chiudere..."
+    echo "[ERROR] Python 3 not found."
+    echo "Install it from https://www.python.org/downloads/ and try again."
+    read -n 1 -p "Press any key to close..."
     exit 1
 fi
 
-# Installa dipendenze solo se mancanti
+# Install dependencies only if missing
 if ! "$PY" -c "import requests, openpyxl, keyring" >/dev/null 2>&1; then
-    echo "[setup] Installo le dipendenze (requests, openpyxl, keyring)..."
+    echo "[setup] Installing dependencies (requests, openpyxl, keyring)..."
     "$PY" -m pip install --user --quiet -r automation/requirements.txt
     if [ $? -ne 0 ]; then
-        echo "[ERRORE] Installazione dipendenze fallita."
-        echo "Prova manualmente: $PY -m pip install --user -r automation/requirements.txt"
-        read -n 1 -p "Premi un tasto per chiudere..."
+        echo "[ERROR] Dependency installation failed."
+        echo "Try manually: $PY -m pip install --user -r automation/requirements.txt"
+        read -n 1 -p "Press any key to close..."
         exit 1
     fi
 fi
 
+# Load shared secrets (age). Best-effort: if not set up, the first-run wizard
+# and the OS keychain are still used. See SECRETS.md.
+if [ -f "../_load-secrets.sh" ]; then
+    source "../_load-secrets.sh"
+    _doxee_load_secrets || echo "[secrets] Continuing without age secrets (using setup wizard / keychain)."
+fi
+
 "$PY" automation/server.py
 
-# Se il server e' uscito con errore, tieni la finestra aperta per leggerlo.
+# If the server exited with an error, keep the window open so you can read it.
 if [ $? -ne 0 ]; then
     echo ""
-    read -n 1 -p "Premi un tasto per chiudere..."
+    read -n 1 -p "Press any key to close..."
 fi

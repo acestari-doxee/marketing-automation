@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────
-# SEGRETI E CONFIGURAZIONI LOCALI
+# SECRETS AND LOCAL CONFIG
 # ──────────────────────────────────────────────
 .env
 .env.*
@@ -14,6 +14,15 @@ secrets.json
 credentials.json
 token.json
 service_account.json
+
+# age — plaintext secrets and the decryption key are NEVER committed.
+# The encrypted blob (secrets.env.age) and the public recipients file ARE committed.
+secrets.env
+age-key.txt
+*.agekey
+!secrets.env.example
+!secrets.env.age
+!.age-recipients
 
 # ──────────────────────────────────────────────
 # PYTHON
@@ -55,7 +64,7 @@ dist/
 out/
 
 # ──────────────────────────────────────────────
-# DATI E OUTPUT TEMPORANEI
+# TEMPORARY DATA AND OUTPUT
 # ──────────────────────────────────────────────
 *.xlsx
 *.csv
@@ -65,7 +74,7 @@ data/temp/
 *.tmp
 
 # ──────────────────────────────────────────────
-# SISTEMA OPERATIVO
+# OPERATING SYSTEM
 # ──────────────────────────────────────────────
 .DS_Store
 Thumbs.db
@@ -87,9 +96,9 @@ Icon
 .dockerignore
 
 # ──────────────────────────────────────────────
-# SPECIFICO DOXEE
+# DOXEE-SPECIFIC
 # ──────────────────────────────────────────────
-# File claude interni — non rilevanti per la repo pubblica
+# Internal Claude files — not relevant to the repo
 memory.md
 tasks.md
 usage.json

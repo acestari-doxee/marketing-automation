@@ -321,6 +321,12 @@ function mergeCluster(records) {
   const enrichedSet = new Set();
   for (const r of records) (r._enriched || []).forEach(e => enrichedSet.add(e));
   merged._enriched = [...enrichedSet];
+  // Merge extra columns — first non-empty value wins
+  const allExtraKeys = new Set(records.flatMap(r => Object.keys(r._extra || {})));
+  merged._extra = {};
+  for (const k of allExtraKeys) {
+    merged._extra[k] = firstNonEmpty(records.map(r => (r._extra || {})[k]));
+  }
   return merged;
 }
 
@@ -374,12 +380,24 @@ function handleFile(file) {
     const header = rows[0].map(h => String(h).trim().toLowerCase());
     const map = {};
     for (const [key, aliases] of Object.entries(ALIASES)) {
-      const idx = header.findIndex(h => aliases.some(a => h.includes(a)));
+      // Short aliases (≤3 chars, e.g. 'nom') must match exactly to avoid
+      // 'nom' matching 'nome' (Italian first-name column) as a substring.
+      const idx = header.findIndex(h => aliases.some(a => h === a || (a.length > 3 && h.includes(a))));
       if (idx >= 0) map[key] = idx;
     }
+    // Track which column indices are already mapped to known fields
+    const mappedIndices = new Set(Object.values(map));
     const raw = rows.slice(1).filter(r => r.some(c => c !== '')).map(r => {
       const l = { _id: nextId++, _score:null, _enriched:[] };
       for (const [key, idx] of Object.entries(map)) l[key] = String(r[idx]||'').trim();
+      // Preserve ALL unmapped columns so no data is silently dropped
+      l._extra = {};
+      header.forEach((_, i) => {
+        if (mappedIndices.has(i)) return;
+        const origHeader = String(rows[0][i]||'').trim();
+        if (!origHeader) return;
+        l._extra[origHeader] = String(r[i]||'').trim();
+      });
       return l;
     });
     const before = raw.length;
@@ -462,9 +480,11 @@ function deleteSelected() {
 
 function renderTable() {
   const filtered = getFiltered();
+  const extraKeys = getExtraKeys();
   const headCells =
     `<th class="col-check"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)"></th>` +
-    COLUMNS.map(c => `<th onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key?(sortAsc?' ↑':' ↓'):''}</th>`).join('');
+    COLUMNS.map(c => `<th onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key?(sortAsc?' ↑':' ↓'):''}</th>`).join('') +
+    extraKeys.map(k => `<th title="${k}">${k}</th>`).join('');
   document.getElementById('table-head').innerHTML = `<tr>${headCells}</tr>`;
   const tbody = document.getElementById('table-body');
   const empty = document.getElementById('empty-state');
@@ -479,9 +499,16 @@ function renderTable() {
       const dataCells = COLUMNS.map(c => {
         if (c.key==='_score') { if(l._score===null)return'<td>—</td>'; const cl=l._score>=10?'score-green':l._score>=0?'score-yellow':'score-red'; return`<td><span class="score ${cl}">${l._score>0?'+':''}${l._score}</span></td>`; }
         const v=displayValue(l,c)||'';
-        return `<td class="${c.enriched&&v?'enriched-val':''}" title="${v}">${v||'—'}</td>`;
+        // Green only if Apollo actually filled this field (field is in _enriched)
+        const isEnriched = c.enriched && v && (l._enriched||[]).includes(c.key);
+        return `<td class="${isEnriched?'enriched-val':''}" title="${v}">${v||'—'}</td>`;
       }).join('');
-      return `<tr class="${rc}">${checkCell}${dataCells}</tr>`;
+      // Extra (unmapped) columns
+      const extraCells = extraKeys.map(k => {
+        const v = (l._extra||{})[k] || '';
+        return `<td title="${v}">${v||'—'}</td>`;
+      }).join('');
+      return `<tr class="${rc}">${checkCell}${dataCells}${extraCells}</tr>`;
     }).join('');
   }
   document.getElementById('lead-count').textContent = `${filtered.length} lead${filtered.length===1?'':'s'}${filtered.length!==leads.length?` of ${leads.length}`:''}`;
@@ -491,17 +518,22 @@ function renderTable() {
 
 function sortBy(col) { if(sortCol===col)sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;} renderTable(); }
 
+// Returns all extra (unmapped) column names present across all leads
+function getExtraKeys() {
+  const keys = new Set();
+  for (const l of leads) for (const k of Object.keys(l._extra || {})) keys.add(k);
+  return [...keys];
+}
+
 /* ---------------- Score-only (no Apollo calls) ---------------- */
 
 // Recomputes the fit score of every lead using only fields already present.
 // Useful for already-enriched files: zero Apollo quota consumed.
 function recomputeScores() {
   if (!leads.length) { showToast('No leads loaded.', 'error'); return; }
-  const enrichable = ['job_title','company','industry','company_size','revenue','country'];
   for (const l of leads) {
     l._score = computeScore(l);
-    // mark already-filled fields as "present" so the table highlights them
-    l._enriched = enrichable.filter(k => l[k] !== undefined && String(l[k]).trim() !== '');
+    // Do NOT touch _enriched — green highlight is reserved for Apollo-filled fields only
   }
   renderTable();
   showToast(`Score computed on ${leads.length} leads — no Apollo call consumed.`, 'success');
@@ -530,14 +562,15 @@ async function startEnrichment() {
       const d=await res.json();
       if(res.ok){
         const en=[];
+        // Only fill fields that are currently empty — never overwrite existing data
         if(d.first_name&&!(lead.first_name||'').trim()){lead.first_name=d.first_name;}
         if(d.last_name&&!(lead.last_name||'').trim()){lead.last_name=d.last_name;}
-        if(d.job_title){lead.job_title=d.job_title;en.push('job_title');}
-        if(d.company){lead.company=d.company;en.push('company');}
-        if(d.company_size){lead.company_size=String(d.company_size);en.push('company_size');}
-        if(d.revenue){lead.revenue=String(d.revenue);en.push('revenue');}
-        if(d.industry){lead.industry=d.industry;en.push('industry');}
-        if(d.country){lead.country=d.country;en.push('country');}
+        if(d.job_title&&!(lead.job_title||'').trim()){lead.job_title=d.job_title;en.push('job_title');}
+        if(d.company&&!(lead.company||'').trim()){lead.company=d.company;en.push('company');}
+        if(d.company_size&&!(lead.company_size||'').trim()){lead.company_size=String(d.company_size);en.push('company_size');}
+        if(d.revenue&&!(lead.revenue||'').trim()){lead.revenue=String(d.revenue);en.push('revenue');}
+        if(d.industry&&!(lead.industry||'').trim()){lead.industry=d.industry;en.push('industry');}
+        if(d.country&&!(lead.country||'').trim()){lead.country=d.country;en.push('country');}
         lead._enriched=en; lead._score=computeScore(lead);
       }
     } catch(_){}
@@ -559,20 +592,27 @@ function exportXLSX() {
   //  - "Number of Employees" and "Company Size" (=revenue) → preset ranges
   //  - "Industry" / "Industry ridotte"                     → exact HubSpot labels
   //  - text fields                                         → Title Case
-  const rows=leads.map(l=>({
-    'Salutation':           M.titleCase(l.salutation||''),
-    'First Name':           M.titleCase(l.first_name||''),
-    'Last Name':            M.titleCase(l.last_name||''),
-    'Email':                l.email||'',
-    'Job Title':            M.titleCase(l.job_title||''),
-    'Company':              M.titleCase(l.company||''),
-    'Industry':             M.toHubSpotIndustry(l.industry),
-    'Industry ridotte':     M.toIndustryRidotta(l.industry),
-    'Number of Employees':  M.employeesRange(l.company_size),
-    'Company Size':         M.revenueRange(l.revenue),
-    'Country':              M.titleCase(l.country||''),
-    'Score':                l._score!==null?l._score:''
-  }));
+  const rows=leads.map(l=>{
+    const row = {
+      'Salutation':           M.titleCase(l.salutation||''),
+      'First Name':           M.titleCase(l.first_name||''),
+      'Last Name':            M.titleCase(l.last_name||''),
+      'Email':                l.email||'',
+      'Job Title':            M.titleCase(l.job_title||''),
+      'Company':              M.titleCase(l.company||''),
+      'Industry':             M.toHubSpotIndustry(l.industry),
+      'Industry ridotte':     M.toIndustryRidotta(l.industry),
+      'Number of Employees':  M.employeesRange(l.company_size),
+      'Company Size':         M.revenueRange(l.revenue),
+      'Country':              M.titleCase(l.country||''),
+      'Score':                l._score!==null?l._score:''
+    };
+    // Append all unmapped/extra columns — never drop user data
+    for (const [k, v] of Object.entries(l._extra || {})) {
+      if (!(k in row)) row[k] = v;
+    }
+    return row;
+  });
   const ws=XLSX.utils.json_to_sheet(rows), wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Leads');
   XLSX.writeFile(wb,`leads_enriched_${new Date().toISOString().slice(0,10)}.xlsx`);

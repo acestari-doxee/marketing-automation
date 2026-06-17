@@ -47,6 +47,7 @@ To add a new automation: create a new folder following the template in `README-T
 
 ## Contact
 
+Alessio Cestari – acestari@doxee.com
 Leonardo Bellani — lbellani@doxee.com  
 Emanuela Disperati — edisperati@doxee.com  
 Doxee Marketing Team — ref: Judith Schuder
