@@ -10,7 +10,7 @@ if [ -x "tools/age-darwin-$arch" ]; then AGE="./tools/age-darwin-$arch"
 elif [ -x "$HOME/bin/age" ]; then AGE="$HOME/bin/age"
 elif command -v age >/dev/null 2>&1; then AGE="age"
 else
-  echo "'age' was not found. See SECRETS.md for the no-admin install (~/bin)."
+  echo "'age' was not found. See docs/SECRETS.md for the no-admin install (~/bin)."
   exit 1
 fi
 if [ ! -f secrets.env ]; then

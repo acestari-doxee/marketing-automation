@@ -20,8 +20,8 @@ if %errorlevel% neq 0 (
     )
 )
 
-REM Load shared secrets (age). Best-effort: falls back to the setup wizard / keychain. See SECRETS.md.
-if exist "%~dp0..\_load-secrets.bat" call "%~dp0..\_load-secrets.bat"
+REM Load shared secrets (age). Best-effort: falls back to the setup wizard / keychain. See docs/SECRETS.md.
+if exist "%~dp0..\secrets\load-secrets.bat" call "%~dp0..\secrets\load-secrets.bat"
 
 python automation\server.py
 if %errorlevel% neq 0 (

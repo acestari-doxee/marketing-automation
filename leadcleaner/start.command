@@ -12,9 +12,9 @@ fi
 cd "$APP_DIR"
 
 # Load shared secrets (age). Best-effort: if age/key are not set up, the app
-# falls back to a local .env. See SECRETS.md.
-if [ -f "$APP_DIR/../_load-secrets.sh" ]; then
-  source "$APP_DIR/../_load-secrets.sh"
+# falls back to a local .env. See docs/SECRETS.md.
+if [ -f "$APP_DIR/../secrets/load-secrets.sh" ]; then
+  source "$APP_DIR/../secrets/load-secrets.sh"
   _doxee_load_secrets || echo "[secrets] Continuing without age secrets (will use local .env)."
 fi
 
@@ -23,7 +23,7 @@ if [ -z "$APOLLO_API_KEY" ] && [ ! -f ".env" ]; then
   echo "[setup] No APOLLO_API_KEY from age and no .env — copying from .env.example"
   cp .env.example .env
   echo ""
-  echo "  Either set up age (see SECRETS.md) or open .env and add your APOLLO_API_KEY,"
+  echo "  Either set up age (see docs/SECRETS.md) or open .env and add your APOLLO_API_KEY,"
   echo "  then run this file again."
   echo ""
   read -rp "Press Enter to close..."

@@ -14,15 +14,15 @@ if errorlevel 1 (
   exit /b 1
 )
 
-REM Load shared secrets (age). Best-effort: falls back to local .env. See SECRETS.md.
-if exist "%~dp0..\_load-secrets.bat" call "%~dp0..\_load-secrets.bat"
+REM Load shared secrets (age). Best-effort: falls back to local .env. See docs/SECRETS.md.
+if exist "%~dp0..\secrets\load-secrets.bat" call "%~dp0..\secrets\load-secrets.bat"
 
 REM Require a key only if age didn't already provide it
 if not defined APOLLO_API_KEY if not exist ".env" (
   echo [setup] No APOLLO_API_KEY from age and no .env - copying from .env.example
   copy ".env.example" ".env" >nul
   echo.
-  echo   Either set up age ^(see SECRETS.md^) or open .env and add your APOLLO_API_KEY,
+  echo   Either set up age ^(see docs/SECRETS.md^) or open .env and add your APOLLO_API_KEY,
   echo   then run this file again.
   echo.
   pause

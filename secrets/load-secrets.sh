@@ -24,7 +24,7 @@ _doxee_load_secrets() {
     else
         echo ""
         echo "[secrets] 'age' was not found."
-        echo "  No-admin install:  see SECRETS.md (downloads to ~/bin, no password needed)"
+        echo "  No-admin install:  see docs/SECRETS.md (downloads to ~/bin, no password needed)"
         echo "  or drop the age binary in: $here/tools/"
         return 1
     fi
@@ -33,7 +33,7 @@ _doxee_load_secrets() {
         echo "[secrets] Decryption key not found:"
         echo "  $key_file"
         echo "  Get 'age-key.txt' from the company password manager (ask acestari@doxee.com)"
-        echo "  and place it in the repo root."
+        echo "  and place it in the secrets/ folder."
         return 1
     fi
     if [ ! -f "$secret_file" ]; then

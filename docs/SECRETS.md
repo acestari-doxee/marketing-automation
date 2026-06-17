@@ -1,28 +1,34 @@
 # Secrets — how credentials work in this repo
 
 All credentials (Apollo key, HubSpot token, Azure app credentials) live in **one
-encrypted file committed to the repo**: `secrets.env.age`. It is encrypted with
-[age](https://age-encryption.org) for a single shared team key. The launchers
+encrypted file**: `secrets/secrets.env.age`, committed to the repo. It is encrypted
+with [age](https://age-encryption.org) for a single shared team key. The launchers
 (`start.command` / `start.bat`) decrypt it at startup and pass the values to the
 app as environment variables — nothing is written to disk in plaintext.
 
+Everything related to secrets lives in the **`secrets/`** folder:
+
 ```
 doxee-marketing-ai/
-├── secrets.env.age      # encrypted secrets — COMMITTED
-├── secrets.env.example  # template (keys only, no values) — committed
-├── .age-recipients      # team PUBLIC key — committed (public keys are not secret)
-├── secrets.env          # plaintext — LOCAL ONLY, gitignored, never commit
-├── age-key.txt          # PRIVATE decryption key — LOCAL ONLY, gitignored, from password manager
-├── encrypt-secrets.sh   # re-encrypt secrets.env -> secrets.env.age
-├── _load-secrets.sh     # decrypt + export (used by Mac launchers)
-└── _load-secrets.bat    # decrypt + export (used by Windows launchers)
+├── secrets/
+│   ├── secrets.env.age      # encrypted secrets — COMMITTED
+│   ├── secrets.env.example  # template (keys only, no values) — committed
+│   ├── .age-recipients      # team PUBLIC key — committed (public keys are not secret)
+│   ├── load-secrets.sh      # decrypt + export (used by Mac launchers)
+│   ├── load-secrets.bat     # decrypt + export (used by Windows launchers)
+│   ├── encrypt-secrets.sh   # re-encrypt secrets.env -> secrets.env.age
+│   ├── secrets.env          # plaintext — LOCAL ONLY, gitignored, never commit
+│   └── age-key.txt          # PRIVATE decryption key — LOCAL ONLY, gitignored, from password manager
+├── deal-engagement/  event-mailer/  leadcleaner/   # the tools
+├── docs/             # documentation (this file, guides, template)
+├── README.md  CLAUDE.md
 ```
 
 The secrets file is a plain `KEY=VALUE` list (no comments, no blank lines needed):
 
 ```
 APOLLO_API_KEY=...
-HUBSPOT_TOKEN=pat-eu1-...
+HUBSPOT_TOKEN=pat-na1-...
 AZURE_TENANT_ID=...
 AZURE_CLIENT_ID=...
 AZURE_CLIENT_SECRET=...
@@ -44,38 +50,48 @@ age --version
 ```
 
 If the download is blocked by the corporate network too, use the **vendored
-binary** fallback: someone who can download age commits the binaries into the
-repo under `tools/` (`tools/age-darwin-arm64`, `tools/age-darwin-amd64`,
-`tools/age-windows-amd64.exe`). The launchers automatically prefer `tools/age-*`
-when present, so after a `git pull` it works with zero install.
+binary** fallback: someone who can download age commits the binaries into
+`secrets/tools/` (`age-darwin-arm64`, `age-darwin-amd64`, `age-windows-amd64.exe`).
+The launchers automatically prefer `secrets/tools/age-*` when present, so after a
+`git pull` it works with zero install.
 
 (With Homebrew: `brew install age`. On Windows with admin: `winget install FiloSottile.age`.)
 
 ## One-time team setup (done once, by whoever owns the secrets)
 
-1. Generate the team key:
+All commands run from the `secrets/` folder:
+
+```
+cd secrets
+```
+
+1. Generate the team key — writes the private key to `age-key.txt` and prints the public key:
 
    ```
    age-keygen -o age-key.txt
    ```
 
-   This prints the **public key** (`age1...`) and writes the **private key** to
-   `age-key.txt`.
+2. Put the public key into `.age-recipients` (replace the placeholder):
 
-2. Put the public key into `.age-recipients` (replace the placeholder line).
+   ```
+   grep -o 'age1[a-z0-9]*' age-key.txt > .age-recipients
+   ```
 
 3. Create `secrets.env` from the template and fill in the real values:
 
    ```
    cp secrets.env.example secrets.env
+   open -e secrets.env
    ```
 
 4. Encrypt it and commit the result:
 
    ```
    ./encrypt-secrets.sh          # produces secrets.env.age
-   git add secrets.env.age .age-recipients
+   cd ..
+   git add secrets/secrets.env.age secrets/.age-recipients
    git commit -m "Update encrypted secrets"
+   git push
    ```
 
 5. Share `age-key.txt` with the team **only through the company password manager**
@@ -85,7 +101,7 @@ when present, so after a `git pull` it works with zero install.
 
 1. Install age (see above).
 2. Get `age-key.txt` from the company password manager (ask **acestari@doxee.com**)
-   and place it in the repo root, next to `secrets.env.age`.
+   and place it in the **`secrets/`** folder, next to `secrets.env.age`.
 3. That's it. Double-click `start.command` (Mac) / `start.bat` (Windows) — the
    launcher decrypts the secrets automatically. No passphrase prompt.
 
@@ -95,8 +111,8 @@ nothing breaks for someone who hasn't set up age yet.
 
 ## Changing or rotating a secret
 
-1. Edit `secrets.env` with the new value.
-2. Run `./encrypt-secrets.sh` and commit the updated `secrets.env.age`.
+1. Edit `secrets/secrets.env` with the new value.
+2. From `secrets/`, run `./encrypt-secrets.sh` and commit the updated `secrets/secrets.env.age`.
 
 To rotate the **team key itself** (e.g. someone left): run `age-keygen` again,
 update `.age-recipients`, re-encrypt, redistribute the new `age-key.txt` via the

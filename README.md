@@ -32,16 +32,19 @@ Then go into the folder of the automation you need and follow its README.
 ## For contributors
 
 Each automation folder has a "For developers" section in its README with technical details.  
-To add a new automation: create a new folder following the template in `README-TEMPLATE.md` and update the table above.
+To add a new automation: create a new folder following the template in `docs/README-TEMPLATE.md` and update the table above.
 
 ---
 
-## Files in this repo
+## Where things are
 
-| File | Purpose |
+| Path | What's inside |
 |---|---|
-| `README-TEMPLATE.md` | Standard template to use for each new automation |
-| `.gitignore` | Base gitignore (covers Python, Node, secrets) |
+| `leadcleaner/`, `deal-engagement/`, `event-mailer/` | The three automations, each self-contained with its own README |
+| `secrets/` | age-encrypted credentials + the loaders the launchers use — setup in [`docs/SECRETS.md`](./docs/SECRETS.md) |
+| `docs/` | Documentation: [`SECRETS.md`](./docs/SECRETS.md), the team guide, `README-TEMPLATE.md` |
+| `README.md`, `CLAUDE.md` | This index, and the working notes/conventions for the repo |
+| `.gitignore` | Base gitignore (covers Python, Node, and all secret files) |
 
 ---
 

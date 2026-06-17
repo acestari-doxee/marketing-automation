@@ -11,7 +11,10 @@ doxee-marketing-ai/
 ├── leadcleaner/       # Node.js — XLSX web app → Apollo enrichment → scoring
 ├── deal-engagement/   # Python — HubSpot deals → Excel report
 ├── event-mailer/      # Python — Outlook RSVP dashboard + cross-client invites
-└── README-TEMPLATE.md # Standard template for new automations
+├── secrets/           # age-encrypted secrets + loaders (see docs/SECRETS.md)
+├── docs/              # documentation, team guide, README-TEMPLATE.md
+├── README.md
+└── CLAUDE.md
 ```
 
 Each automation is self-contained and has its own README, stack and environment variables.
@@ -31,7 +34,7 @@ Each automation is self-contained and has its own README, stack and environment 
 ## Before touching any code
 
 1. Read the README of the specific folder — it holds the flow, the configurable parameters and the constraints.
-2. Secrets are shared via one age-encrypted file at the repo root (`secrets.env.age`) — see `SECRETS.md`. The launchers decrypt it and inject the values as environment variables (`APOLLO_API_KEY`, `HUBSPOT_TOKEN`, `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`). A local `.env` / `config.json` still works as a fallback. Never commit real credentials, `secrets.env` (plaintext) or `age-key.txt`.
+2. Secrets are shared via one age-encrypted file, `secrets/secrets.env.age` — see `docs/SECRETS.md`. The launchers decrypt it and inject the values as environment variables (`APOLLO_API_KEY`, `HUBSPOT_TOKEN`, `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`). A local `.env` / `config.json` still works as a fallback. Never commit real credentials, `secrets/secrets.env` (plaintext) or `secrets/age-key.txt`.
 3. Do not edit `usage.json` in `leadcleaner/` — it's the Apollo call counter and is managed by the server.
 
 ---
@@ -86,7 +89,7 @@ Configuration in `deal-engagement/src/config.yaml`.
 ## Adding a new automation
 
 1. Create a new folder in the root.
-2. Copy `README-TEMPLATE.md` and fill it in.
+2. Copy `docs/README-TEMPLATE.md` and fill it in.
 3. Add the row to the table in the main README.
 4. Add a `start.command` (Mac) and a `start.bat` (Windows) if it's a local app, both in the automation's root folder.
 5. Always add a `.env.example` / `config.example.json` — never files with real credentials.

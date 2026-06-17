@@ -14,8 +14,8 @@ if not exist .venv (
     call .venv\Scripts\activate.bat
 )
 
-REM Load shared secrets (age). Best-effort: falls back to the sidebar or src\.env. See SECRETS.md.
-if exist "%~dp0..\_load-secrets.bat" call "%~dp0..\_load-secrets.bat"
+REM Load shared secrets (age). Best-effort: falls back to the sidebar or src\.env. See docs/SECRETS.md.
+if exist "%~dp0..\secrets\load-secrets.bat" call "%~dp0..\secrets\load-secrets.bat"
 
 echo [run] Starting app — opens in your browser at http://localhost:8501
 streamlit run src\app.py

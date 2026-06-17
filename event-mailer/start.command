@@ -30,9 +30,9 @@ if ! "$PY" -c "import requests, openpyxl, keyring" >/dev/null 2>&1; then
 fi
 
 # Load shared secrets (age). Best-effort: if not set up, the first-run wizard
-# and the OS keychain are still used. See SECRETS.md.
-if [ -f "../_load-secrets.sh" ]; then
-    source "../_load-secrets.sh"
+# and the OS keychain are still used. See docs/SECRETS.md.
+if [ -f "../secrets/load-secrets.sh" ]; then
+    source "../secrets/load-secrets.sh"
     _doxee_load_secrets || echo "[secrets] Continuing without age secrets (using setup wizard / keychain)."
 fi
 

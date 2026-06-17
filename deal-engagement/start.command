@@ -42,9 +42,9 @@ if [ ! -f "$VENV_STREAMLIT" ]; then
 fi
 
 # Load shared secrets (age). Best-effort: if not set up, you can still paste the
-# token in the app sidebar or use src/.env. See SECRETS.md.
-if [ -f "../_load-secrets.sh" ]; then
-  source "../_load-secrets.sh"
+# token in the app sidebar or use src/.env. See docs/SECRETS.md.
+if [ -f "../secrets/load-secrets.sh" ]; then
+  source "../secrets/load-secrets.sh"
   _doxee_load_secrets || echo "[secrets] Continuing without age secrets (use the sidebar or src/.env)."
 fi
 

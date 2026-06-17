@@ -17,7 +17,7 @@ if exist "%DOXEE_ROOT%tools\age-windows-amd64.exe" (
   where age >nul 2>nul
   if errorlevel 1 (
     echo [secrets] 'age' was not found.
-    echo           See SECRETS.md, or drop age.exe in %DOXEE_ROOT%tools\
+    echo           See docs\SECRETS.md, or drop age.exe in %DOXEE_ROOT%tools\
     exit /b 1
   )
   set "AGE=age"
