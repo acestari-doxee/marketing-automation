@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Event Mailer — pannello di controllo RSVP via Microsoft Graph.
+Event Mailer — RSVP control panel via Microsoft Graph.
 
-Legge gli stati live direttamente da Exchange. Funziona indipendentemente
-dal client Outlook locale. Compatibile con Gmail come destinatario:
-inviti in formato RFC 5546, reply lette via API.
+Reads live statuses directly from Exchange. Works independently of the local
+Outlook client. Compatible with Gmail as a recipient: invites in RFC 5546
+format, replies read via the API.
 
-Avvia con: ./start.command
+Start with: ./start.command
 """
 
 import json
@@ -66,8 +66,8 @@ def _fmt_iso(iso_str):
 
 def read_event():
     """
-    Ritorna (subject, date_str, attendees, error).
-    error è una stringa machine-readable: 'NOT_FOUND', 'AUTH', 'NETWORK', oppure il messaggio.
+    Returns (subject, date_str, attendees, error).
+    error is a machine-readable string: 'NOT_FOUND', 'AUTH', 'NETWORK', or the message.
     """
     cfg = _load_config()
     keyword = cfg.get("event_keyword", "DOXEE")
@@ -116,7 +116,7 @@ def _counts(attendees):
 
 
 def build_xlsx(subject, date_str, attendees):
-    """Genera un file .xlsx con i partecipanti filtrati. Ritorna i bytes."""
+    """Builds an .xlsx file with the filtered attendees. Returns the bytes."""
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment
 
@@ -124,22 +124,22 @@ def build_xlsx(subject, date_str, attendees):
     ws = wb.active
     ws.title = "RSVP"
 
-    # Header con info evento
+    # Header with event info
     ws["A1"] = subject or "Doxee Day"
     ws["A1"].font = Font(bold=True, size=14)
     ws.merge_cells("A1:D1")
 
     if date_str:
-        ws["A2"] = f"Data: {date_str}"
+        ws["A2"] = f"Date: {date_str}"
         ws["A2"].font = Font(italic=True, color="6b7280")
         ws.merge_cells("A2:D2")
 
-    ws["A3"] = f"Esportato il {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+    ws["A3"] = f"Exported on {datetime.now().strftime('%d/%m/%Y %H:%M')}"
     ws["A3"].font = Font(italic=True, color="9ca3af", size=10)
     ws.merge_cells("A3:D3")
 
-    # Header tabella
-    headers = ["Nome", "Email", "Stato", "Sorgente"]
+    # Table header
+    headers = ["Name", "Email", "Status", "Source"]
     header_row = 5
     for i, h in enumerate(headers, start=1):
         c = ws.cell(row=header_row, column=i, value=h)
@@ -147,7 +147,7 @@ def build_xlsx(subject, date_str, attendees):
         c.fill = PatternFill("solid", fgColor="1f2937")
         c.alignment = Alignment(horizontal="left")
 
-    # Colori per stato
+    # Colors per status
     status_fill = {
         "Accepted":  "dcfce7",
         "Declined":  "fee2e2",
@@ -163,7 +163,7 @@ def build_xlsx(subject, date_str, attendees):
         if a.get("status") in status_fill:
             sc.fill = PatternFill("solid", fgColor=status_fill[a["status"]])
 
-    # Larghezze colonne
+    # Column widths
     widths = {"A": 28, "B": 36, "C": 14, "D": 14}
     for col, w in widths.items():
         ws.column_dimensions[col].width = w
@@ -189,17 +189,17 @@ def get_data(force=False):
         result = {
             "ok": False,
             "error": (
-                f'Nessun evento con "{_event_kw()}" nel titolo trovato su Exchange.\n'
-                f'Verifica che l\'evento esista nel tuo calendario, oppure cambia '
-                f'"event_keyword" in config.json per matchare il titolo esatto.'
+                f'No event with "{_event_kw()}" in the title found on Exchange.\n'
+                f'Check that the event exists in your calendar, or change '
+                f'"event_keyword" in config.json to match the exact title.'
             ),
         }
     elif err and err.startswith("AUTH:"):
         result = {
             "ok": False,
             "error": (
-                f"Autenticazione Microsoft fallita: {err[5:].strip()}\n"
-                f"Cancella .token_cache.json e riavvia il server per rifare il login."
+                f"Microsoft authentication failed: {err[5:].strip()}\n"
+                f"Delete .token_cache.json and restart the server to log in again."
             ),
         }
     elif err:
@@ -321,14 +321,14 @@ class Handler(BaseHTTPRequestHandler):
                 with _cache_lock:
                     _cache["ts"] = 0
 
-                self._json({"ok": True, "message": f"Invito inviato a {name}"})
+                self._json({"ok": True, "message": f"Invitation sent to {name}"})
 
             except gc.DuplicateError:
-                self._json({"ok": False, "error": f"{email} è già invitato all'evento."}, 400)
+                self._json({"ok": False, "error": f"{email} is already invited to the event."}, 400)
             except gc.NotFoundError:
-                self._json({"ok": False, "error": f'Nessun evento "{_event_kw()}" su Exchange.'}, 400)
+                self._json({"ok": False, "error": f'No event "{_event_kw()}" on Exchange.'}, 400)
             except gc.AuthError as e:
-                self._json({"ok": False, "error": f"Auth fallita: {e}"}, 401)
+                self._json({"ok": False, "error": f"Auth failed: {e}"}, 401)
             except Exception as e:
                 self._json({"ok": False, "error": f"{type(e).__name__}: {e}"}, 500)
 
@@ -340,7 +340,7 @@ class Handler(BaseHTTPRequestHandler):
                 name   = b.get("name", email).strip()
 
                 if status not in STATUS_COLORS:
-                    self._json({"ok": False, "error": "Stato non valido."}, 400)
+                    self._json({"ok": False, "error": "Invalid status."}, 400)
                     return
 
                 invitati = load_invitati()
@@ -467,8 +467,8 @@ footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;padding-bo
     <div class="sub" id="ev-date"></div>
   </div>
   <div style="display:flex;gap:8px">
-    <button class="btn btn-ghost" onclick="refresh()">↻ Aggiorna</button>
-    <button class="btn btn-ghost" style="color:#ef4444;border-color:#fca5a5" onclick="resetAll()">⊘ Inizializza</button>
+    <button class="btn btn-ghost" onclick="refresh()">↻ Refresh</button>
+    <button class="btn btn-ghost" style="color:#ef4444;border-color:#fca5a5" onclick="resetAll()">⊘ Reset</button>
   </div>
 </header>
 
@@ -487,12 +487,12 @@ footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;padding-bo
   </div>
 
   <div class="panel">
-    <div class="ph"><h2>Aggiungi invitato</h2></div>
+    <div class="ph"><h2>Add guest</h2></div>
     <div class="pb">
       <div class="form-row">
-        <div class="field"><label>Nome</label><input id="f-name" type="text" placeholder="Mario Rossi"/></div>
-        <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="mario@azienda.com"/></div>
-        <button class="btn btn-green" id="btn-inv" onclick="sendInvite()">Invia invito</button>
+        <div class="field"><label>Name</label><input id="f-name" type="text" placeholder="Mario Rossi"/></div>
+        <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="mario@company.com"/></div>
+        <button class="btn btn-green" id="btn-inv" onclick="sendInvite()">Send invitation</button>
       </div>
       <div id="toast" class="toast"></div>
     </div>
@@ -500,11 +500,11 @@ footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;padding-bo
 
   <div class="panel">
     <div class="ph">
-      <h2>Partecipanti <span id="total" style="color:#9ca3af;font-weight:400;font-size:12px;margin-left:6px"></span></h2>
+      <h2>Attendees <span id="total" style="color:#9ca3af;font-weight:400;font-size:12px;margin-left:6px"></span></h2>
       <div class="toolbar">
         <span class="filter-info" id="filter-info"></span>
-        <button class="btn btn-gray" id="btn-clear" onclick="clearFilters()" style="display:none">Pulisci filtri</button>
-        <button class="btn btn-blue" onclick="exportXlsx()">⬇ Esporta XLSX</button>
+        <button class="btn btn-gray" id="btn-clear" onclick="clearFilters()" style="display:none">Clear filters</button>
+        <button class="btn btn-blue" onclick="exportXlsx()">⬇ Export XLSX</button>
         <span style="font-size:12px;color:#6b7280"><span class="live-dot"></span>live</span>
       </div>
     </div>
@@ -570,7 +570,7 @@ async function refresh(){
 }
 
 async function resetAll(){
-  if(!confirm('Svuota invitati.json e ricarica da Exchange?')) return;
+  if(!confirm('Empty invitati.json and reload from Exchange?')) return;
   try{
     const d = await fetch('/api/reset',{method:'POST'}).then(r=>r.json());
     render(d);
@@ -609,13 +609,13 @@ function render(d){
     : d.attendees;
 
   document.getElementById('total').textContent =
-    _activeFilters.size ? `(${filtered.length} di ${d.attendees.length})` : `(${d.attendees.length})`;
-  document.getElementById('foot').textContent  = `Aggiornato il ${d.generated}`;
+    _activeFilters.size ? `(${filtered.length} of ${d.attendees.length})` : `(${d.attendees.length})`;
+  document.getElementById('foot').textContent  = `Updated ${d.generated}`;
 
   if(!filtered.length){
     const msg = _activeFilters.size
-      ? 'Nessun partecipante con i filtri selezionati.'
-      : 'Nessun partecipante. Aggiungi il primo invitato sopra.';
+      ? 'No attendees match the selected filters.'
+      : 'No attendees yet. Add the first guest above.';
     document.getElementById('tbl').innerHTML = `<div class="empty">${msg}</div>`;
     return;
   }
@@ -624,16 +624,16 @@ function render(d){
   const sorted = [...filtered].sort((a,b)=>order.indexOf(a.status)-order.indexOf(b.status));
 
   document.getElementById('tbl').innerHTML = `<table>
-    <thead><tr><th>Nome</th><th>Email</th><th>Stato</th></tr></thead>
+    <thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead>
     <tbody>${sorted.map(a=>{
       const manual = a.source === 'manual';
       const badge = manual
         ? `<span class="badge clickable" style="background:${SC[a.status]||'#6b7280'}"
              onclick="openMenu(event,'${esc(a.email)}','${esc(a.name)}')"
-             title="Clicca per aggiornare">${esc(a.status)} ▾</span>`
+             title="Click to update">${esc(a.status)} ▾</span>`
         : `<span class="badge" style="background:${SC[a.status]||'#6b7280'}">${esc(a.status)}</span>`;
       return `<tr>
-        <td>${esc(a.name)}${manual?'<span class="src">(manuale)</span>':''}</td>
+        <td>${esc(a.name)}${manual?'<span class="src">(manual)</span>':''}</td>
         <td style="color:#6b7280;font-size:12px">${esc(a.email)}</td>
         <td>${badge}</td>
       </tr>`;
@@ -645,8 +645,8 @@ async function sendInvite(){
   const name  = document.getElementById('f-name').value.trim();
   const email = document.getElementById('f-email').value.trim();
   const btn   = document.getElementById('btn-inv');
-  if(!name||!email){toast('Inserisci nome e email.',false);return}
-  btn.disabled=true; btn.textContent='Invio…';
+  if(!name||!email){toast('Enter name and email.',false);return}
+  btn.disabled=true; btn.textContent='Sending…';
   try{
     const r = await fetch('/api/invite',{method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -662,9 +662,9 @@ async function sendInvite(){
     }
   }catch(e){
     console.error('[RSVP] fetch error:', e);
-    toast('Errore di connessione.',false,true);
+    toast('Connection error.',false,true);
   }
-  btn.disabled=false; btn.textContent='Invia invito';
+  btn.disabled=false; btn.textContent='Send invitation';
 }
 
 function closeToast(){document.getElementById('toast').style.display='none';}
@@ -710,29 +710,29 @@ setInterval(loadData, 8000);
 
 
 def main():
-    # Wizard primo avvio (autorileva .ics, raccoglie credenziali, salva secret in Keychain).
+    # First-run wizard (auto-detects .ics, collects credentials, stores secret in the keychain).
     if setup.needs_setup():
         setup.run()
 
     url = f"http://localhost:{PORT}"
 
-    print("[event-mailer] Verifica autenticazione Microsoft Graph...")
+    print("[event-mailer] Checking Microsoft Graph authentication...")
     try:
         gc._ensure_token()
         print("[event-mailer] Auth OK.")
     except gc.AuthError as e:
-        print(f"[event-mailer] ERRORE auth: {e}")
-        print("[event-mailer] Cancella .token_cache.json e riprova.")
+        print(f"[event-mailer] AUTH ERROR: {e}")
+        print("[event-mailer] Delete .token_cache.json and try again.")
         return
 
     try:
         httpd = HTTPServer(("localhost", PORT), Handler)
     except OSError:
-        print(f"[ERRORE] Porta {PORT} gia' in uso. Chiudi l'altra istanza e riprova.")
+        print(f"[ERROR] Port {PORT} already in use. Close the other instance and try again.")
         return
 
-    print(f"[event-mailer] Pannello avviato -> {url}")
-    print("[event-mailer] Ctrl+C per fermare.")
+    print(f"[event-mailer] Panel started -> {url}")
+    print("[event-mailer] Ctrl+C to stop.")
 
     def _open():
         time.sleep(0.6)

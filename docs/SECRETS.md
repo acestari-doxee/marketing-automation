@@ -36,24 +36,29 @@ AZURE_CLIENT_SECRET=...
 
 ## Install age (no admin rights needed)
 
-You do NOT need Homebrew or administrator rights. Install age into your own
-`~/bin` folder. On a Mac, paste this into Terminal:
+You do NOT need Homebrew or administrator rights — age installs into your own `~/bin`.
+
+**Mac** — Terminal:
 
 ```
 mkdir -p ~/bin && cd ~/bin
 A=$([ "$(uname -m)" = arm64 ] && echo arm64 || echo amd64)
 curl -L -o age.tar.gz "https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-darwin-$A.tar.gz"
 tar xzf age.tar.gz && mv age/age age/age-keygen ~/bin/ && rm -rf age age.tar.gz
-echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
-export PATH="$HOME/bin:$PATH"
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && export PATH="$HOME/bin:$PATH"
 age --version
 ```
 
-If the download is blocked by the corporate network too, use the **vendored
-binary** fallback: someone who can download age commits the binaries into
-`secrets/tools/` (`age-darwin-arm64`, `age-darwin-amd64`, `age-windows-amd64.exe`).
-The launchers automatically prefer `secrets/tools/age-*` when present, so after a
-`git pull` it works with zero install.
+**Windows** — PowerShell:
+
+```
+mkdir "$HOME\bin" -Force | Out-Null
+Invoke-WebRequest "https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-windows-amd64.zip" -OutFile "$env:TEMP\age.zip"
+Expand-Archive "$env:TEMP\age.zip" "$env:TEMP\age" -Force
+Move-Item "$env:TEMP\age\age\age.exe","$env:TEMP\age\age\age-keygen.exe" "$HOME\bin\" -Force
+$u=[Environment]::GetEnvironmentVariable("Path","User"); [Environment]::SetEnvironmentVariable("Path","$HOME\bin;$u","User")
+```
+Then close and reopen PowerShell and run `age --version`.
 
 (With Homebrew: `brew install age`. On Windows with admin: `winget install FiloSottile.age`.)
 
@@ -99,9 +104,9 @@ cd secrets
 
 ## Per-user setup (each team member, once)
 
-1. Install age (see above).
+1. `git clone` the repo, then install age (see above).
 2. Get `age-key.txt` from the company password manager (ask **acestari@doxee.com**)
-   and place it in the **`secrets/`** folder, next to `secrets.env.age`.
+   and drop it into the **`secrets/`** folder, next to `secrets.env.age`.
 3. That's it. Double-click `start.command` (Mac) / `start.bat` (Windows) — the
    launcher decrypts the secrets automatically. No passphrase prompt.
 

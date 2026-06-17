@@ -4,13 +4,11 @@
 set -e
 cd "$(dirname "$0")"
 
-# Resolve age: vendored tools/ copy wins, then ~/bin, then PATH.
-arch=$([ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64)
-if [ -x "tools/age-darwin-$arch" ]; then AGE="./tools/age-darwin-$arch"
-elif [ -x "$HOME/bin/age" ]; then AGE="$HOME/bin/age"
+# Resolve age: ~/bin (no-admin install) then PATH.
+if [ -x "$HOME/bin/age" ]; then AGE="$HOME/bin/age"
 elif command -v age >/dev/null 2>&1; then AGE="age"
 else
-  echo "'age' was not found. See docs/SECRETS.md for the no-admin install (~/bin)."
+  echo "'age' was not found. See docs/SECRETS.md for the install."
   exit 1
 fi
 if [ ! -f secrets.env ]; then

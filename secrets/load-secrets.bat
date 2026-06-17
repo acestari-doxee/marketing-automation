@@ -10,18 +10,12 @@ set "DOXEE_ROOT=%~dp0"
 set "DOXEE_KEY=%DOXEE_ROOT%age-key.txt"
 set "DOXEE_SEC=%DOXEE_ROOT%secrets.env.age"
 
-REM Resolve the age binary: vendored copy in tools\ wins (no install), then PATH.
-if exist "%DOXEE_ROOT%tools\age-windows-amd64.exe" (
-  set "AGE=%DOXEE_ROOT%tools\age-windows-amd64.exe"
-) else (
-  where age >nul 2>nul
-  if errorlevel 1 (
-    echo [secrets] 'age' was not found.
-    echo           See docs\SECRETS.md, or drop age.exe in %DOXEE_ROOT%tools\
-    exit /b 1
-  )
-  set "AGE=age"
+where age >nul 2>nul
+if errorlevel 1 (
+  echo [secrets] 'age' is not installed. See docs\SECRETS.md.
+  exit /b 1
 )
+set "AGE=age"
 if not exist "%DOXEE_KEY%" (
   echo [secrets] Missing age-key.txt in %DOXEE_ROOT%
   echo           Get it from the company password manager ^(ask acestari@doxee.com^).

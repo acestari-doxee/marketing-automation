@@ -7,25 +7,20 @@
 # plaintext. Returns non-zero (without exiting the caller) if it cannot load.
 
 _doxee_load_secrets() {
-    local here secret_file key_file k v arch age_bin
+    local here secret_file key_file k v age_bin
     here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     secret_file="$here/secrets.env.age"
     key_file="$here/age-key.txt"
 
-    # Resolve the age binary: vendored copy in tools/ wins (no install needed),
-    # then ~/bin, then PATH.
-    arch=$([ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64)
-    if [ -x "$here/tools/age-darwin-$arch" ]; then
-        age_bin="$here/tools/age-darwin-$arch"
-    elif [ -x "$HOME/bin/age" ]; then
+    # Resolve the age binary: ~/bin (no-admin install) then PATH.
+    if [ -x "$HOME/bin/age" ]; then
         age_bin="$HOME/bin/age"
     elif command -v age >/dev/null 2>&1; then
         age_bin="age"
     else
         echo ""
-        echo "[secrets] 'age' was not found."
-        echo "  No-admin install:  see docs/SECRETS.md (downloads to ~/bin, no password needed)"
-        echo "  or drop the age binary in: $here/tools/"
+        echo "[secrets] 'age' is not installed."
+        echo "  Install it (no admin needed) — see docs/SECRETS.md."
         return 1
     fi
     if [ ! -f "$key_file" ]; then

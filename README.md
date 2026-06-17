@@ -17,15 +17,32 @@ Each automation lives in its own folder with full documentation.
 
 ---
 
-## How to get started
+## Quick start (first time, ~5 min)
 
-Clone the repo once and you have everything:
+**1. Download the project** — in Terminal:
 
 ```bash
 git clone https://github.com/Doxee-Marketing/marketing-automation.git
+cd marketing-automation
 ```
 
-Then go into the folder of the automation you need and follow its README.
+**2. Install age** (one-time, no admin) — Mac:
+
+```bash
+mkdir -p ~/bin
+A=$([ "$(uname -m)" = arm64 ] && echo arm64 || echo amd64)
+curl -L -o /tmp/age.tgz "https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-darwin-$A.tar.gz"
+tar xzf /tmp/age.tgz -C /tmp && mv /tmp/age/age /tmp/age/age-keygen ~/bin/
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && export PATH="$HOME/bin:$PATH"
+```
+
+Windows (PowerShell) and full details: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md) / [`docs/SECRETS.md`](./docs/SECRETS.md).
+
+**3. Add the key** — ask **acestari@doxee.com** for `age-key.txt`, then drag that file into the **`secrets/`** folder (next to `secrets.env.age`).
+
+**4. Run a tool** — open its folder (e.g. `leadcleaner/`) and double-click **`start.command`** (Mac) or **`start.bat`** (Windows). The browser opens, ready. Done.
+
+From the second time on: just double-click the launcher.
 
 ---
 

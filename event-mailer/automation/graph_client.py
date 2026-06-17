@@ -1,9 +1,9 @@
 """
 Microsoft Graph client — Event Mailer.
 
-Auth: OAuth2 device code flow con confidential client.
-client_secret cifrato nel macOS Keychain (libreria 'keyring').
-Token (access + refresh) cachato in .token_cache.json (chmod 600).
+Auth: OAuth2 device code flow with a confidential client.
+client_secret stored in the OS keychain (the 'keyring' library).
+Token (access + refresh) cached in .token_cache.json (chmod 600).
 """
 
 import base64
@@ -45,9 +45,9 @@ STATUS_MAP = {
     "organizer":           "Accepted",
 }
 
-# Mapping per le eventMessageResponse lette dalla inbox.
-# Exchange non processa automaticamente le reply da domini custom (Gmail,
-# provider esterni): questo bypassa il problema.
+# Mapping for the eventMessageResponse items read from the inbox.
+# Exchange does not automatically process replies from custom domains (Gmail,
+# external providers): this works around the problem.
 _INBOX_REPLY_MAP = {
     "meetingAccepted":            "Accepted",
     "meetingDeclined":            "Declined",
@@ -171,7 +171,7 @@ def _refresh(refresh_token):
 def _device_flow():
     client_id, client_secret = _creds()
     if not client_id or not client_secret:
-        raise AuthError("Credenziali Azure mancanti. Rilancia start.command per il setup.")
+        raise AuthError("Azure credentials missing. Re-run start.command to set them up.")
 
     r = requests.post(f"{_authority()}/oauth2/v2.0/devicecode", data={
         "client_id": client_id,
@@ -192,11 +192,10 @@ def _device_flow():
 
     print()
     print("=" * 60)
-    print(f"  Codice:  {code}   (gia' copiato negli appunti)")
-    print(f"  Pagina:  {url}")
+    print(f"  Code:  {code}   (already copied to clipboard)")
+    print(f"  Page:  {url}")
     print("=" * 60)
-    print("  Ho aperto la pagina nel browser. Incolla il codice e conferma.")
-    print("  Resto in attesa qui sotto...")
+    print("  Browser opened. Paste the code and confirm. Waiting here...")
     print()
 
     interval = int(dc.get("interval", 5))
@@ -212,7 +211,7 @@ def _device_flow():
         }, timeout=15).json()
 
         if "access_token" in resp:
-            print("  Login confermato.\n")
+            print("  Login confirmed.\n")
             return _token_from_response(resp)
 
         err = resp.get("error", "")
@@ -222,16 +221,16 @@ def _device_flow():
             interval += 5
             continue
         if err == "expired_token":
-            raise AuthError("Codice scaduto. Rilancia start.command e riprova.")
+            raise AuthError("Code expired. Re-run start.command and try again.")
         if err == "access_denied":
-            raise AuthError("Accesso negato dall'utente.")
+            raise AuthError("Access denied by the user.")
         raise AuthError(resp.get("error_description") or err or str(resp))
 
-    raise AuthError("Timeout: il codice e' scaduto senza conferma.")
+    raise AuthError("Timeout: the code expired without confirmation.")
 
 
 def _ensure_token():
-    """Access token valido. Refresh silenzioso; device flow solo al primo run."""
+    """Valid access token. Silent refresh; device flow only on the first run."""
     cache = _load_cache()
 
     if cache.get("access_token") and cache.get("expires_at", 0) > time.time():
@@ -241,7 +240,7 @@ def _ensure_token():
         try:
             return _refresh(cache["refresh_token"])
         except Exception:
-            pass  # refresh scaduto → fallback al device flow
+            pass  # refresh expired → fall back to the device flow
 
     return _device_flow()
 
@@ -250,7 +249,7 @@ def _h():
     return {"Authorization": f"Bearer {_ensure_token()}"}
 
 
-# ── Parsing evento ────────────────────────────────────────────────────────────
+# ── Event parsing ───────────────────────────────────────────────────────────
 
 def _parse(e):
     return {
@@ -276,9 +275,9 @@ def _parse(e):
 
 def _inbox_replies(keyword, top=200):
     """
-    Legge eventMessageResponse dalla inbox dell'organizzatore e ritorna
-    {email_lower: status}. Prende la risposta piu' recente per indirizzo.
-    Fallisce silenziosamente per non bloccare il flusso principale.
+    Reads eventMessageResponse items from the organiser's inbox and returns
+    {email_lower: status}. Takes the most recent reply per address.
+    Fails silently so it doesn't block the main flow.
     """
     try:
         r = requests.get(f"{GRAPH}/me/messages", headers=_h(), params={
@@ -303,7 +302,7 @@ def _inbox_replies(keyword, top=200):
 
 
 def _merge_inbox(keyword, parsed):
-    """Sovrascrive gli status Exchange con le reply dalla inbox."""
+    """Overrides the Exchange statuses with the replies from the inbox."""
     replies = _inbox_replies(keyword)
     for a in parsed["attendees"]:
         s = replies.get(a["email"].lower())
@@ -353,10 +352,10 @@ def _fmt_ical_dt(iso_str):
 
 def _send_ical_invite(ev, attendee_name, attendee_email):
     """
-    Invia un invito iCalendar via sendMail con METHOD:REQUEST.
-    Client esterni (Gmail, Apple Mail, Outlook mobile) mostrano i bottoni
-    Accept / Tentative / Decline. Le reply tornano nella inbox e vengono
-    lette da _inbox_replies().
+    Sends an iCalendar invite via sendMail with METHOD:REQUEST.
+    External clients (Gmail, Apple Mail, Outlook mobile) show the
+    Accept / Tentative / Decline buttons. Replies come back to the inbox and
+    are read by _inbox_replies().
     """
     subject  = ev.get("subject", "Evento")
     start_dt = (ev.get("start") or {}).get("dateTime", "")
@@ -415,7 +414,7 @@ def _send_ical_invite(ev, attendee_name, attendee_email):
 def add_attendee(event_id, name, email):
     h = {**_h(), "Content-Type": "application/json"}
 
-    # Fetch completo: servono start/end/organizer/iCalUId per costruire l'invite.
+    # Full fetch: we need start/end/organizer/iCalUId to build the invite.
     cur = requests.get(f"{GRAPH}/me/events/{event_id}", headers=h,
                        params={"$select": "attendees,subject,start,end,organizer,iCalUId,body"},
                        timeout=15)
@@ -429,10 +428,10 @@ def add_attendee(event_id, name, email):
            for a in existing):
         raise DuplicateError(email)
 
-    # sendUpdates=always: Exchange invia lui l'invito al nuovo partecipante.
-    # _send_ical_invite rimossa: su questo tenant sendUpdates=none veniva ignorato
-    # e causava una email doppia. Exchange genera già un iCal METHOD:REQUEST
-    # compatibile con Gmail e qualsiasi client.
+    # sendUpdates=always: Exchange itself sends the invite to the new attendee.
+    # _send_ical_invite was removed: on this tenant sendUpdates=none was ignored
+    # and caused a duplicate email. Exchange already generates an iCal METHOD:REQUEST
+    # compatible with Gmail and any client.
     r = requests.patch(f"{GRAPH}/me/events/{event_id}", headers=h,
                        params={"sendUpdates": "always"},
                        json={"attendees": existing + [{

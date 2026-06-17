@@ -1,11 +1,11 @@
 """
 Deal Engagement Extractor — HubSpot → Excel
-Replica il formato di hubspot_deal_report.xlsx.
+Reproduces the format of hubspot_deal_report.xlsx.
 
-Uso:
-    python run.py            # run normale
-    python run.py --init     # stampa il mapping per i JSON in cache
-    python run.py --no-cache # ignora la cache, rifà tutte le call API
+Usage:
+    python run.py            # normal run
+    python run.py --init     # prints the mapping for the cached JSON files
+    python run.py --no-cache # ignore the cache, redo all API calls
 
 Output: output/hubspot_deal_report_<YYYYMMDD_HHmm>.xlsx
 """
@@ -64,7 +64,7 @@ def get_token() -> str:
     load_dotenv(ROOT / ".env")
     tok = os.getenv("HUBSPOT_TOKEN")
     if not tok:
-        sys.exit("[ERR] HUBSPOT_TOKEN mancante. Copia .env.example in .env e incolla il token.")
+        sys.exit("[ERR] HUBSPOT_TOKEN missing. Copy .env.example to .env and paste the token.")
     return tok
 
 
@@ -75,7 +75,7 @@ def hs_request(
     json_body: dict | None = None,
     retries: int = 3,
 ) -> dict:
-    """Chiamata HubSpot con retry su 429/5xx."""
+    """HubSpot request with retry on 429/5xx."""
     url = f"{HUBSPOT_BASE}{path}"
     headers = {
         "Authorization": f"Bearer {token}",
@@ -98,7 +98,7 @@ def cache_path(step: int) -> Path:
 
 
 def load_or_fetch(step: int, fetcher, *, force: bool) -> dict:
-    """Se il file di cache esiste e force=False, lo legge. Altrimenti chiama fetcher() e lo scrive."""
+    """If the cache file exists and force=False, read it. Otherwise call fetcher() and write it."""
     path = cache_path(step)
     if not force and path.exists():
         print(f"  [cache] step {step} ← {path.name}")
@@ -159,7 +159,7 @@ def step5_company_to_contacts(token: str, company_ids: list[str]) -> dict:
 def step6_contacts_detail(
     token: str, contact_ids: list[str], score_property: str
 ) -> dict:
-    """HubSpot batch read accetta max 100 input per chiamata. Chunkiamo."""
+    """HubSpot batch read accepts max 100 inputs per call. We chunk them."""
     merged = {"results": []}
     for chunk in chunked(contact_ids, 100):
         body = {
@@ -194,11 +194,11 @@ def aggregate(
     score_threshold,
 ) -> list[dict]:
     """
-    Ritorna una lista di gruppi:
+    Returns a list of groups:
         [{deal: {...}, account_name: str, contacts: [ {name, jobtitle, email, score}, ...]}, ...]
-    Ordinati per close_date ascendente (deal più vicini in cima).
+    Sorted by ascending close_date (nearest deals on top).
     """
-    # mappe id → record
+    # id → record maps
     deal_map = {d["id"]: d["properties"] for d in deals["results"]}
     company_map = {c["id"]: c["properties"] for c in companies["results"]}
     contact_map = {c["id"]: c["properties"] for c in contacts["results"]}
@@ -230,7 +230,7 @@ def aggregate(
             score_raw = cp.get(score_property)
             score_num = _to_int(score_raw)
 
-            # filtro: escludi non-scorati (None/"") sempre
+            # filter: always exclude unscored contacts (None/"")
             if score_num is None:
                 continue
             # se threshold definito, applica
@@ -302,7 +302,7 @@ def _fmt_date(iso: str | None) -> str:
 
 
 def _account_name_from_dealname(dealname: str) -> str:
-    """Fallback se la company non ha un name: prendi la prima parte del deal name."""
+    """Fallback when the company has no name: take the first part of the deal name."""
     for sep in [" - ", "_"]:
         if sep in dealname:
             return dealname.split(sep)[0].strip()
@@ -418,12 +418,12 @@ def _write_row(ws, row, account, opp, amount, close_date, name, job, email, scor
 # ---------------------------------------------------------------------------
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--no-cache", action="store_true", help="Ignora la cache, rifa tutte le call.")
-    ap.add_argument("--init", action="store_true", help="Stampa il mapping dei file di cache e esce.")
+    ap.add_argument("--no-cache", action="store_true", help="Ignore the cache, redo all calls.")
+    ap.add_argument("--init", action="store_true", help="Print the cache file mapping and exit.")
     args = ap.parse_args()
 
     if args.init:
-        print("Per riusare i tuoi 6 JSON, copiali in data/cache/ con questi nomi:")
+        print("To reuse your 6 JSON files, copy them into data/cache/ with these names:")
         for k, v in CACHE_FILES.items():
             print(f"  step {k}: {v}")
         return
@@ -438,7 +438,7 @@ def main() -> None:
     # 1. memberships
     mem = load_or_fetch(1, lambda: step1_list_memberships(token, cfg["list_id"]), force=force)
     deal_ids = [str(r["recordId"]) for r in mem["results"]]
-    print(f"  → {len(deal_ids)} deal nel segmento")
+    print(f"  → {len(deal_ids)} deals in the segment")
 
     # 2. deal detail
     deals = load_or_fetch(2, lambda: step2_deals_detail(token, deal_ids), force=force)
@@ -446,7 +446,7 @@ def main() -> None:
     # 3. deal → company
     d2c = load_or_fetch(3, lambda: step3_deal_to_companies(token, deal_ids), force=force)
     company_ids = list({str(t["toObjectId"]) for r in d2c["results"] for t in r["to"]})
-    print(f"  → {len(company_ids)} company uniche")
+    print(f"  → {len(company_ids)} unique companies")
 
     # 4. company detail
     companies = load_or_fetch(
@@ -460,7 +460,7 @@ def main() -> None:
     contact_ids = list({str(t["toObjectId"]) for r in c2c["results"] for t in r["to"]})
     print(f"  → {len(contact_ids)} total contacts across companies")
 
-    # 6. contacts detail (con score)
+    # 6. contacts detail (with score)
     contacts = load_or_fetch(
         6,
         lambda: step6_contacts_detail(token, contact_ids, cfg["score_property"]),
