@@ -115,12 +115,12 @@ def _save_cache(data):
 
 
 def _copy_to_clipboard(text):
-    """Best-effort: pbcopy su macOS, clip su Windows, xclip su Linux. Errori ignorati."""
+    """Best-effort: pbcopy on macOS, clip on Windows, xclip on Linux. Errors ignored."""
     try:
         if sys.platform == "darwin":
             subprocess.run(["pbcopy"], input=text.encode(), check=False, timeout=2)
         elif sys.platform == "win32":
-            # clip.exe vuole UTF-16 LE, non UTF-8.
+            # clip.exe expects UTF-16 LE, not UTF-8.
             subprocess.run(["clip"], input=text.encode("utf-16-le"),
                            check=False, timeout=2)
         elif sys.platform.startswith("linux"):

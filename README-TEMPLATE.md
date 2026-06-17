@@ -39,4 +39,5 @@
 
 **Leonardo Bellani** — lbellani@doxee.com  
 **Emanuela Disperati**  — edisperati@doxee.com
+**Alessio Cestari** – acestari@doxee.com
 Doxee Marketing Team

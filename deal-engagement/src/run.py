@@ -50,10 +50,10 @@ CACHE_FILES = {
 # ---------------------------------------------------------------------------
 def load_config() -> dict:
     if not CONFIG_PATH.exists():
-        sys.exit(f"[ERR] config.yaml non trovato in {CONFIG_PATH}")
+        sys.exit(f"[ERR] config.yaml not found in {CONFIG_PATH}")
     with CONFIG_PATH.open() as f:
         cfg = yaml.safe_load(f)
-    cfg.setdefault("score_property", "hubspotscore")
+    cfg.setdefault("score_property", "lead_score_contacts_total")
     cfg.setdefault("score_threshold", None)
     cfg.setdefault("output_dir", str(OUTPUT_DIR))
     cfg.setdefault("cache_dir", str(CACHE_DIR))
@@ -90,7 +90,7 @@ def hs_request(
             continue
         r.raise_for_status()
         return r.json()
-    sys.exit(f"[ERR] {method} {path} fallito dopo {retries} tentativi")
+    sys.exit(f"[ERR] {method} {path} failed after {retries} attempts")
 
 
 def cache_path(step: int) -> Path:
@@ -250,7 +250,7 @@ def aggregate(
                 }
             )
 
-        # ordina contatti per score desc
+        # sort contacts by score desc
         contact_rows.sort(key=lambda x: x["score"], reverse=True)
 
         groups.append(
@@ -265,7 +265,7 @@ def aggregate(
             }
         )
 
-    # ordina deal per close_date
+    # sort deals by close_date
     groups.sort(key=lambda g: g["close_date_raw"] or "9999")
     return groups
 
@@ -344,7 +344,7 @@ def write_xlsx(groups: list[dict], output_path: Path) -> None:
     for g in groups:
         contacts = g["contacts"]
         if not contacts:
-            # deal senza contatti engaged: una riga con campi contatto vuoti
+            # deal with no engaged contacts: one row with empty contact fields
             _write_row(
                 ws, row,
                 g["account_name"], g["deal_name"], g["amount"], g["close_date"],
@@ -458,7 +458,7 @@ def main() -> None:
         5, lambda: step5_company_to_contacts(token, company_ids), force=force
     )
     contact_ids = list({str(t["toObjectId"]) for r in c2c["results"] for t in r["to"]})
-    print(f"  → {len(contact_ids)} contatti totali sulle company")
+    print(f"  → {len(contact_ids)} total contacts across companies")
 
     # 6. contacts detail (con score)
     contacts = load_or_fetch(
@@ -479,7 +479,7 @@ def main() -> None:
     )
 
     total_engaged = sum(len(g["contacts"]) for g in groups)
-    print(f"  → {total_engaged} contatti con score valido (threshold={cfg['score_threshold']})")
+    print(f"  → {total_engaged} contacts with a valid score (threshold={cfg['score_threshold']})")
 
     # 8. xlsx
     ts = datetime.now().strftime("%Y%m%d_%H%M")

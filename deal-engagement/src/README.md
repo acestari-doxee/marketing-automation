@@ -33,7 +33,15 @@ Only contacts with a **`null` / unset score** (shown as `—` in the template) a
 ---
 
 ## Pipeline
-[config.yaml] ──▶ run.py ──▶ data/cache/_.json ──▶ output/_.xlsx │ ▲ │ │ HubSpot REST API (Private App token) └─ list_id, score_property, score_threshold
+
+```
+[config.yaml] ──▶ run.py ──▶ data/cache/*.json ──▶ output/*.xlsx
+   │                 ▲
+   │                 │
+   └─ list_id,       └─ HubSpot REST API (Private App token)
+      score_property,
+      score_threshold
+```
 
 Steps (idempotent, each caches its own JSON in `data/cache/`):
 
@@ -59,7 +67,7 @@ The 6 JSON files already downloaded should be copied to `data/cache/` with the n
 | Caching | Per-step JSON files | Fast re-runs, clean debugging. |
 | Score threshold | `> null` (default) | Exactly replicates the already-validated file. Configurable. |
 | Contact scope | company-wide | The 7 deal-level contacts are too few; the approved file uses company contacts. |
-| Score property | `hubspotscore` | To be confirmed with Robert/CRM ops. If Doxee uses a custom property, change in `config.yaml`. |
+| Score property | `lead_score_contacts_total` | Doxee custom property. Switch to `lead_score_contacts_engagement` to measure only marketing engagement. Change in `config.yaml`. |
 | Output | XLSX | Required format, readable by anyone. |
 
 ---
@@ -100,6 +108,8 @@ Runtime: ~30 sec from scratch, ~3 sec with cache. Output: `output/hubspot_deal_r
 
 ## HubSpot token
 
+> The token and password already exist — ask  acestari@doxee.com  before creating a new one.
+
 Settings → Integrations → Private Apps → Create app. Required scopes:
 
 `crm.lists.read`, `crm.objects.deals.read`, `crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.associations.read`
@@ -112,8 +122,8 @@ The token can be entered each time in the app sidebar, **or** saved once in `.en
 
 ```yaml
 list_id: 17603
-score_property: hubspotscore   # change if Doxee uses a custom property
-score_threshold: null          # null = exclude only unscored. Set 1 / 5 / 10 for stricter filters
+score_property: lead_score_contacts_total   # or lead_score_contacts_engagement
+score_threshold: null                        # null = exclude only unscored. Set 1 / 5 / 10 for stricter filters
 output_dir: ./output
 cache_dir: ./data/cache
 ```
@@ -131,6 +141,6 @@ cache_dir: ./data/cache
 
 ## Open points
 
-- [ ] Confirm score property name in Doxee HubSpot (`hubspotscore` standard vs custom)
+- [ ] Confirm score property name in Doxee HubSpot (`lead_score_contacts_total` vs `lead_score_contacts_engagement`)
 - [ ] Validate list ID 17603 = "Deal Created in 2026 – New Logo/Cross-Sell"
 - [ ] Decide with Judith whether `score_threshold` should be `null` (exclude only unscored, as now) or `> 0`

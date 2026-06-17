@@ -1,19 +1,20 @@
-# Configurazione Deal Engagement Extractor
+# Deal Engagement Extractor configuration
 
-# ID del segmento HubSpot "Deal Created in 2026 – New Logo/Cross-Sell"
+# HubSpot segment ID "Deal Created in 2026 – New Logo/Cross-Sell"
 list_id: 17603
 
-# Nome della property di lead score in HubSpot.
-# - "hubspotscore" è quella standard di HubSpot.
-# - Se Doxee usa un custom score (es. "doxee_lead_score"), cambialo qui.
+# HubSpot lead score property name.
+# - "lead_score_contacts_total" is the overall contact score (default).
+# - "lead_score_contacts_engagement" tracks only marketing engagement activity.
+# - If Doxee uses a different custom score, change it here.
 score_property: lead_score_contacts_total
 
-# Soglia minima per includere un contatto.
-# - null  → include tutti i contatti CON uno score (esclude solo quelli non scorati). Replica il file template.
-# - 1     → esclude anche gli zero
-# - 10    → solo "High engagement" secondo la legenda
+# Minimum score required to include a contact.
+# - null  -> include all contacts WITH a score (only unscored ones are excluded). Matches the template file.
+# - 1     -> also exclude zeros
+# - 10    -> only "High engagement" per the legend
 score_threshold: null
 
-# Directory output (.xlsx) e cache (.json)
+# Output (.xlsx) and cache (.json) directories
 output_dir: ./output
 cache_dir: ./data/cache

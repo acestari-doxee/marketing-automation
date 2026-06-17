@@ -20,19 +20,31 @@ Pulls deals from a HubSpot segment and produces an Excel file with accounts, opp
 ### 2. Download this project (first time only)
 
 1. Open Terminal (Mac: search "Terminal" with `Cmd + Space`) or Command Prompt (Windows: search "cmd")
-2. Navigate to where you want to save the project, e.g. the Desktop:
-	cd desktop
-3. Download the project (copy and paste):
-	git clone [https://github.com/Doxee-Marketing/marketing-automation.git](https://github.com/Doxee-Marketing/marketing-automation.git)
-4. Enter the folder: 
-	cd marketing-automation/deal-engagement
+2. Navigate to where you want to save the project, e.g. the Desktop. Copy and paste:
+
+   ```
+   cd Desktop
+   ```
+3. Download the project. Copy and paste:
+
+   ```
+   git clone https://github.com/Doxee-Marketing/marketing-automation.git
+   ```
+4. Enter the folder. Copy and paste:
+
+   ```
+   cd marketing-automation/deal-engagement
+   ```
+
 > If the terminal says `git: command not found`, install Git from [git-scm.com/downloads](https://git-scm.com/downloads) and start again from step 1.
 
 ### 3. Set up the HubSpot token (first time only)
 
 The token is the key that allows the script to read data from HubSpot.
 
-To get one:
+> **You probably don't need to create anything.** The HubSpot token and password already exist. Just ask **acestari@doxee.com** for them, then jump straight to "Now add the token to the project" below. Only follow the "To get one" steps if you have been told to generate a brand-new token yourself.
+
+To get one (only if you don't already have it):
 1. Log in to HubSpot
 2. Go to **Settings** (gear icon, top right)
 3. In the sidebar: **Integrations → Private Apps**
@@ -60,7 +72,7 @@ Now add the token to the project:
 ### 4. Run the program
 
 - **Mac:** double-click `start.command` in the main folder
-- **Windows:** double-click `src/start.bat`
+- **Windows:** double-click `start.bat`
 
 **First run:** a black window opens and installs all dependencies. This takes about 1 minute. Do not close it.
 

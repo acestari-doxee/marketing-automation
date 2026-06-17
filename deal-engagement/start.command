@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launcher Mac — doppio click su questo file per avviare l'app.
+# Mac launcher — double-click this file to start the app.
 
 cd "$(dirname "$0")"
 
@@ -7,42 +7,42 @@ VENV_PY=".venv/bin/python3"
 VENV_PIP=".venv/bin/pip"
 VENV_STREAMLIT=".venv/bin/streamlit"
 
-# Controlla che python3 sia installato
+# Check that python3 is installed
 if ! command -v python3 &>/dev/null; then
     echo ""
-    echo "[ERRORE] Python3 non trovato."
-    echo "Vai su https://www.python.org/downloads/ e installa Python, poi riprova."
+    echo "[ERROR] Python3 not found."
+    echo "Go to https://www.python.org/downloads/ and install Python, then try again."
     echo ""
-    read -rp "Premi Invio per chiudere..."
+    read -rp "Press Enter to close..."
     exit 1
 fi
 
-# Crea il virtualenv se non esiste
+# Create the virtualenv if it does not exist
 if [ ! -f "$VENV_PY" ]; then
-    echo "[setup] Creazione virtualenv..."
+    echo "[setup] Creating virtualenv..."
     python3 -m venv .venv
     if [ $? -ne 0 ]; then
-        echo "[ERRORE] Impossibile creare il virtualenv."
-        read -rp "Premi Invio per chiudere..."
+        echo "[ERROR] Could not create the virtualenv."
+        read -rp "Press Enter to close..."
         exit 1
     fi
 fi
 
-# Installa le dipendenze se streamlit non è ancora presente
+# Install dependencies if streamlit is not present yet
 if [ ! -f "$VENV_STREAMLIT" ]; then
-    echo "[setup] Installazione dipendenze (~1 minuto)..."
+    echo "[setup] Installing dependencies (~1 minute)..."
     "$VENV_PIP" install --upgrade pip --quiet
     "$VENV_PIP" install -r src/requirements.txt
     if [ $? -ne 0 ]; then
         echo ""
-        echo "[ERRORE] Installazione dipendenze fallita. Leggi il messaggio sopra."
-        read -rp "Premi Invio per chiudere..."
+        echo "[ERROR] Dependency installation failed. Read the message above."
+        read -rp "Press Enter to close..."
         exit 1
     fi
 fi
 
 echo ""
-echo "[run] Avvio app — si apre nel browser su http://localhost:8501"
-echo "      Per chiudere: torna qui e premi Ctrl+C"
+echo "[run] Starting app — opens in your browser at http://localhost:8501"
+echo "      To close: come back here and press Ctrl+C"
 echo ""
 "$VENV_STREAMLIT" run src/app.py

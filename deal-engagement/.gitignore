@@ -14,5 +14,5 @@ __pycache__/
 src/output/
 src/data/cache/
 
-# Note interne
+# Internal notes
 *.rtf

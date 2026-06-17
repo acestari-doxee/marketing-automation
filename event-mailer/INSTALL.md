@@ -45,29 +45,54 @@ You should see something like `Python 3.12.3`.
 
 ---
 
-## 3. Download the project
+## 3. Download the project with Git
 
-**Option A — with Git (if you have it installed):**
+The project is downloaded with Git. Do **not** use GitHub's "Download ZIP": on a Mac a downloaded ZIP is quarantined by Gatekeeper and the launcher won't open with a double-click, and the folder name is wrong. Git clone avoids both problems.
 
-Open Terminal and run:
+### 3.1 — Install Git (only if you don't have it)
+
+Many corporate PCs don't have Git pre-installed. Check first — open Terminal (Mac) or Command Prompt (Windows, search `cmd` in the Start menu) and run:
 
 ```
-git clone [https://github.com/Doxee-Marketing/marketing-automation.git](https://github.com/Doxee-Marketing/marketing-automation.git)
+git --version
+```
 
-Then:
+If it prints `git version 2.xx.x`, skip to 3.2. If it says "command not found" / "not recognized", install it:
 
+- **Windows:** go to [git-scm.com/download/win](https://git-scm.com/download/win) — a `.exe` downloads automatically. Double-click it, click **Next** through the wizard leaving every default, then **Install** and **Finish**. Close and reopen the Command Prompt, then re-run `git --version` to confirm.
+- **Mac:** run `xcode-select --install` in Terminal and confirm the popup, or download the installer from [git-scm.com/download/mac](https://git-scm.com/download/mac). Then re-run `git --version`.
+
+> If your corporate PC blocks the installer, ask IT to install Git for Windows for you — it's a standard, approved tool.
+
+### 3.2 — Clone the project
+
+In Terminal / Command Prompt, move to the Desktop and clone the repo:
+
+**Mac:**
+
+```
+cd ~/Desktop
+git clone https://github.com/Doxee-Marketing/marketing-automation.git
 cd marketing-automation/event-mailer
 ```
 
-**Option B — download the ZIP:**
+**Windows:**
 
-Go to the GitHub page of the project. Click **Code** (green button, top right). Click **Download ZIP**.
+```
+cd %USERPROFILE%\Desktop
+git clone https://github.com/Doxee-Marketing/marketing-automation.git
+cd marketing-automation\event-mailer
+```
 
-Open the downloaded `.zip` file — it creates a folder called `event-mailer`. Move it wherever you prefer (e.g. the Desktop).
+A `marketing-automation` folder is created on the Desktop; `event-mailer` is the subfolder you'll work in.
 
 ---
 
-## ~~4. Register the app on Azure~~    IS DONE --> SKIP PART 4 
+## 4. Azure credentials — ALREADY DONE, SKIP THIS SECTION
+
+> **You don't need to register anything.** The Azure app is already set up and the three credentials (Tenant ID, Client ID, Client Secret) already exist. Ask **acestari@doxee.com** for them, shared **only** via the company password manager (never Teams, email or chat — the Client Secret is a password). Then jump straight to section 5.
+>
+> The steps below are kept for reference only, in case the app ever has to be re-registered from scratch.
 
 This step provides the credentials the program uses to access the Microsoft calendar. It only needs to be done once.
 
@@ -152,9 +177,15 @@ Open the event in the calendar. Click **...** (the three dots, top right of the 
 
 Open the event. From the top menu choose **File → Save As**. Choose the **ICS** format. Click **Save**.
 
+**From Outlook Desktop (Windows):**
+
+Open the event with a double-click so it opens in its own window. Click **File → Save As**. In the dialog, open the **Save as type** dropdown at the bottom and choose **iCalendar Format (*.ics)**. Pick a location (e.g. the Desktop) and click **Save**.
+
+> If you only use the new Outlook for Windows (the one without the **File** menu), it behaves like Outlook Web: open the event, click the **...** menu and choose **Export event**.
+
 Rename the downloaded file to `evento.ics` (all lowercase, no spaces).
 
-Copy `evento.ics` into the `event-mailer` folder (the one you downloaded in step 3).
+Copy `evento.ics` into the **`ics`** subfolder, i.e. `event-mailer/ics/` (on Windows: `event-mailer\ics\`). That's where the program looks for it — not the main `event-mailer` folder. You'll see an `evento.example.ics` already in there; leave it, just add yours next to it.
 
 ---
 
@@ -195,9 +226,13 @@ When you see `Setup complete.`, the wizard is done.
 Right after setup, the program starts the Microsoft login.
 
 You'll see something like this in the Terminal:
-#### Code: ABC-DEF (already copied to clipboard) Page: [https://login.microsoftonline.com/common/oauth2/deviceauth](https://login.microsoftonline.com/common/oauth2/deviceauth)
 
+```
+Code: ABC-DEF (already copied to clipboard)
+Page: https://login.microsoftonline.com/common/oauth2/deviceauth
 Browser opened. Paste the code and confirm. Waiting here...
+```
+
 Your browser opens automatically on the Microsoft page. The code is already in your clipboard.
 
 Click in the text field on the Microsoft page and paste the code:
@@ -235,7 +270,7 @@ The dashboard opens automatically in your browser at `http://localhost:8765`.
 
 From the second run onwards: double-click `start.command`. The wizard does not restart. Microsoft login happens automatically (the token is renewed silently). The dashboard opens directly in the browser.
 
-**If you change the event:** replace the `evento.ics` file in the folder and delete `config.json`. On the next run the wizard restarts and asks for the new information (Azure credentials stay in the Keychain — you won't need to re-enter them).
+**If you change the event:** replace the `evento.ics` file in the `event-mailer/ics/` folder and delete `config.json`. On the next run the wizard restarts and asks for the new information (Azure credentials stay in the Keychain — you won't need to re-enter them).
 
 ---
 
@@ -248,7 +283,7 @@ Check that `start.command` is in the same folder as the other files (`server.py`
 Python is not installed or not in PATH. Go back to section 2 and reinstall it. After installation, close and reopen the Terminal.
 
 **"No .ics file found in the folder".**
-The event file is not in the `event-mailer` folder, or it has a different name from `evento.ics`. Check the file name and location.
+The event file is not in the `event-mailer/ics/` folder, or it has a different name from `evento.ics`. Check the file name and location.
 
 **The browser doesn't open during login.**
 The program prints the URL in the Terminal. Open it manually by copying it into your browser: `https://login.microsoftonline.com/common/oauth2/deviceauth`. The code is already in your clipboard — paste it there.
