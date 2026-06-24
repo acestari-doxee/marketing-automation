@@ -98,6 +98,4 @@ Configuration in `deal-engagement/src/config.yaml`.
 
 ## Contacts
 
-Leonardo Bellani — lbellani@doxee.com  
-Emanuela Disperati — edisperati@doxee.com  
 Ref: Judith Schuder (Marketing)
