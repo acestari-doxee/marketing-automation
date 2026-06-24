@@ -42,7 +42,7 @@ Pulls deals from a HubSpot segment and produces an Excel file with accounts, opp
 
 The token is the key that allows the script to read data from HubSpot.
 
-> **You probably don't need to create anything.** The HubSpot token and password already exist. Just ask **acestari@doxee.com** for them, then jump straight to "Now add the token to the project" below. Only follow the "To get one" steps if you have been told to generate a brand-new token yourself.
+> **You probably don't need to create anything.** The HubSpot token and password already exist. Just ask **platform-eng@doxee.com** for them, then jump straight to "Now add the token to the project" below. Only follow the "To get one" steps if you have been told to generate a brand-new token yourself.
 
 To get one (only if you don't already have it):
 1. Log in to HubSpot
