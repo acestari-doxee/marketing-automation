@@ -37,7 +37,6 @@
 
 ## Contact
 
-**Leonardo Bellani** — lbellani@doxee.com  
-**Emanuela Disperati**  — edisperati@doxee.com
-**Alessio Cestari** – acestari@doxee.com
+For any problems not mentioned open a ticket on Jira Server in the queue Workplace Management (WM)
+
 Doxee Marketing Team
