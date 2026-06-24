@@ -34,7 +34,7 @@ $u=[Environment]::GetEnvironmentVariable("Path","User"); [Environment]::SetEnvir
 
 Then **close and reopen** the terminal and run `age --version` — it must print a version.
 
-**3. Add the key** — ask **acestari@doxee.com** for `age-key.txt`, then **drag it with the mouse** into the project's `secrets/` folder (next to `secrets.env.age`). No command to type.
+**3. Add the key** — search on 1Password a Credential API called age-key, copy it on text file and save it as age-key.txt and then drag that file into the secrets/ folder (next to secrets.env.age). No command to type.
 
 **4. Run** — open the tool's folder (e.g. `leadcleaner/`) and **double-click** `start.command` (Mac) or `start.bat` (Windows). The browser opens, ready to use.
 
