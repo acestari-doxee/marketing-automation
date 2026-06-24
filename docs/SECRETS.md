@@ -105,7 +105,7 @@ cd secrets
 ## Per-user setup (each team member, once)
 
 1. `git clone` the repo, then install age (see above).
-2. Get `age-key.txt` from the company password manager (ask **acestari@doxee.com**)
+2. Get `age-key` from the Marketing password repository (1Password, searching "age-key" in **Credentials API**), copy it into a text file and save as age-key.txt
    and drop it into the **`secrets/`** folder, next to `secrets.env.age`.
 3. That's it. Double-click `start.command` (Mac) / `start.bat` (Windows) — the
    launcher decrypts the secrets automatically. No passphrase prompt.
