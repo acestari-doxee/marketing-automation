@@ -38,7 +38,7 @@ echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && export PATH="$HOME/bin:$PATH
 
 Windows (PowerShell) and full details: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md) / [`docs/SECRETS.md`](./docs/SECRETS.md).
 
-**3. Add the key** — ask **acestari@doxee.com** for `age-key.txt`, then drag that file into the **`secrets/`** folder (next to `secrets.env.age`).
+**3. Add the key** — search on 1Password a Credential API called age-key, copy it on text file and save it as age-key.txt and then drag that file into the **`secrets/`** folder (next to `secrets.env.age`).
 
 **4. Run a tool** — open its folder (e.g. `leadcleaner/`) and double-click **`start.command`** (Mac) or **`start.bat`** (Windows). The browser opens, ready. Done.
 
