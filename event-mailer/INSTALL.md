@@ -90,7 +90,7 @@ A `marketing-automation` folder is created on the Desktop; `event-mailer` is the
 
 ## 4. Azure credentials — ALREADY DONE, SKIP THIS SECTION
 
-> **You don't need to register anything.** The Azure app is already set up and the three credentials (Tenant ID, Client ID, Client Secret) already exist. Ask **acestari@doxee.com** for them, shared **only** via the company password manager (never Teams, email or chat — the Client Secret is a password). Then jump straight to section 5.
+> **You don't need to register anything.** The Azure app is already set up and the three credentials (Tenant ID, Client ID, Client Secret) already exist. Ask to **platform-eng@doxee.com** for them, shared **only** via the company password manager (never Teams, email or chat — the Client Secret is a password). Then jump straight to section 5.
 >
 > The steps below are kept for reference only, in case the app ever has to be re-registered from scratch.
 
